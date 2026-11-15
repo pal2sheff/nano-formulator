@@ -42,10 +42,10 @@ const idset = s => new Set(s.split(' '));
 const ROUTE_OK = {
   oral: () => true,
   nasal: (m, S = idset('mecbl cncbl nad nadh gsh gsh_lipo hyaluronate xylitol')) => m.kind === 'peptide' || S.has(m.id),
-  topical: (m, S = idset('retinol vitc vitc_lipo nam vite coq10 resv ferulic egcg ala hyaluronate pea curcumin curc_mic boswellia glycyrrhizin astax gsh gsh_lipo nad carnosine ergo sod catalase niacin arg cit pantoth zngluc quercetin chondroitin glucosamine bromelain')) => isHormone(m) || S.has(m.id),
+  topical: (m, S = idset('calendula aloe chamomile horsechest plantain bpc157 sflecithin nag retinol vitc vitc_lipo nam vite coq10 resv ferulic egcg ala hyaluronate pea curcumin curc_mic boswellia glycyrrhizin astax gsh gsh_lipo nad carnosine ergo sod catalase niacin arg cit pantoth zngluc quercetin chondroitin glucosamine bromelain')) => isHormone(m) || S.has(m.id),
   td: (m, S = idset('melatonin pea mecbl cncbl dhea preg')) => isHormone(m) || S.has(m.id),
-  rectal: (m, S = idset('prog gsh gsh_lipo curcumin curc_mic')) => S.has(m.id),
-  vaginal: (m, S = idset('e2 e3 prog dhea hyaluronate vite')) => S.has(m.id)
+  rectal: (m, S = idset('prog gsh gsh_lipo curcumin curc_mic curc_lipo butyrate sily_lipo')) => S.has(m.id),
+  vaginal: (m, S = idset('e2 e3 prog dhea hyaluronate vite calendula aloe')) => S.has(m.id)
 };
 
 // причина простыми словами по правилу находки
@@ -141,7 +141,7 @@ function formsFor(ids, dose) {
       note = GUMMY.bases[res.gummyBase].n;
     } else res = analyze({ form: f, P: {}, items });
     const route = ROUTE_OF[f];
-    const fit = ms.filter(m => ROUTE_OK[route](m));
+    const fit = ms.filter(m => ROUTE_OK[route](m) || (m.base && ROUTE_OK[route](BY[m.base])));
     if (!fit.length || (route !== 'oral' && fit.length < ms.length)) return { f, n: formName(f), route, rating: 'na', score: 1e6, reasons: [], note: '' };
     const fs = formFindings(res).sort((x, y) => y.sev - x.sev);
     let mx = fs.length ? fs[0].sev : 0;

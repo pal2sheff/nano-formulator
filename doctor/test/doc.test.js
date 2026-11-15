@@ -130,3 +130,30 @@ test('Нагрузка: никотинамид + SAMe + TMG — метилиро
 test('Общие мишени: 5-HTP и леводопа — AADC', () => {
   assert.ok(A.pkLoad(['htp', 'ldopa']).shared.some(t => t.k === 'AADC'));
 });
+
+/* ---------- Вещества, добавленные 11.2026 ---------- */
+test('Чистотел — противопоказан при болезнях печени и беременности', () => {
+  const c = A.contraFor(A.BY.celandine);
+  assert.ok(c.some(x => x.c === 'liver' && x.sev === 3) && c.some(x => x.c === 'preg' && x.sev === 3));
+});
+test('Серрапептаза, чеснок, конский каштан + антикоагулянты — осторожно', () => {
+  for (const id of ['serrapeptase', 'garlic', 'horsechest']) assert.ok(A.contraFor(A.BY[id]).some(x => x.c === 'anticoag' && x.sev >= 2), id);
+});
+test('Липосомальные формы наследуют синергию, направленность и метаболизм', () => {
+  assert.ok(run('curc_lipo piperine').syn.some(f => f.rule === 'syn_piperine'));
+  assert.ok(A.DIR_OF.resv_lipo && A.PK.resv_lipo);
+});
+test('Рибофлавин + B6 + метилфолат — синергия кофакторов; слизи снижают всасывание минералов', () => {
+  assert.ok(run('b2 p5p').syn.length);
+  assert.ok(run('slipelm febis').inter.some(f => f.rule === 'fibre_abs'));
+});
+test('Формы: BPC-157 — назально/сублингвально предпочтительно, бутират — ректально применим', () => {
+  const r = F('bpc157'); assert.ok(['best', 'ok'].includes(rate(r, 'nasal')));
+  assert.notEqual(rate(F('butyrate'), 'supp'), 'na');
+});
+test('Все 255 активных веществ имеют направленность (кроме b14/пиперина) и данные метаболизма', () => {
+  const act = Object.values(A.BY).filter(m => m.kind !== 'excipient');
+  assert.equal(act.length, 255);
+  assert.deepEqual(act.filter(m => !A.DIR_OF[m.id]).map(m => m.id).sort(), ['b14', 'piperine']);
+  assert.ok(act.every(m => A.PK[m.id]));
+});

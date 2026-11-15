@@ -135,3 +135,27 @@ test('Заключение для копирования содержит вер
   assert.match(t, /Кислотный гидролиз/);
   assert.match(t, /Предлагаемое разделение/);
 });
+
+/* ---------- Вещества, добавленные 11.2026 ---------- */
+test('Липосомы: в водно-спиртовых каплях и троше разрушаются, в водных каплях — нет', () => {
+  assert.ok(has(run('hydro', [['curc_lipo', 200]]), f => f.type === 'Липосомы' && f.sev === 3));
+  assert.ok(has(run('troche', [['resv_lipo', 100]]), f => f.type === 'Липосомы' && f.sev === 3));
+  assert.ok(!has(run('drops', [['resv_lipo', 100]], { vdose: 2 }), f => f.type === 'Липосомы'));
+});
+test('Липосомальная форма наследует правила исходного вещества (пиперин + куркумин)', () => {
+  assert.ok(has(run('caps', [['curc_lipo', 200], ['piperine', 10]]), f => f.rule === 'syn_piperine'));
+});
+test('N-ацетилглюкозамин — восстанавливающий сахар: Майяр с лизином', () => {
+  assert.ok(has(run('caps', [['nag', 500], ['lys', 500]]), f => f.rule === 'maillard'));
+});
+test('Рибофлавин-фосфат на свету ускоряет разрушение витамина C в каплях', () => {
+  assert.ok(has(run('drops', [['b2', 10], ['vitc', 100]]), f => f.rule === 'b2_photo' && f.sev === 2));
+});
+test('Бисглицинат железа: окисляет витамин C в жидкости, pH 1% — щелочной (модель хелата)', () => {
+  assert.ok(has(run('drops', [['febis', 50], ['vitc', 100]], { vdose: 2 }), f => f.rule === 'redoxmetal_reducing'));
+});
+test('Новые вещества: структура и дескрипторы RDKit, синонимы находятся', () => {
+  for (const id of ['nag', 'b2', 'succinic', 'butyrate', 'aucubin', 'mgthr']) assert.ok(A.BY[id].svg && A.BY[id].tpsa != null, id);
+  assert.ok(Object.values(A.BY).filter(m => (m.syn || '').includes('Гриффония')).some(m => m.id === 'htp'));
+  assert.equal(Object.keys(A.BY).length, 294);
+});

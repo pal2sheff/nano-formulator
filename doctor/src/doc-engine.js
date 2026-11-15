@@ -5,7 +5,7 @@ function selMatch(m, s) {
   if (s == null) return true;
   if (Array.isArray(s)) return s.some(x => selMatch(m, x));
   if (typeof s === 'function') return !!s(m);
-  if (s.startsWith('id:')) return m.id === s.slice(3);
+  if (s.startsWith('id:')) return m.id === s.slice(3) || m.base === s.slice(3);
   return m.T.has(s);
 }
 

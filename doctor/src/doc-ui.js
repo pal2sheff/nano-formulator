@@ -34,7 +34,7 @@ function restore() { try { const s = JSON.parse(localStorage.getItem('cc_doc') |
 /* ---------- Выбор вещества (список + поиск по первым буквам) ---------- */
 const norm = s => String(s || '').toLowerCase().replace(/ё/g, 'е');
 const tokens = s => s.split(/[^a-zа-я0-9]+/i).filter(Boolean);
-ACT.forEach(m => { m._q = norm(m.ru + ' ' + m.en + ' ' + m.id + ' ' + effOf(m)); m._r = norm(m.ru); m._e = norm(m.en); m._t = tokens(norm(m.ru + ' ' + m.en + ' ' + m.id)); });
+ACT.forEach(m => { m._q = norm(m.ru + ' ' + m.en + ' ' + m.id + ' ' + effOf(m) + ' ' + (m.syn || '')); m._r = norm(m.ru); m._e = norm(m.en); m._t = tokens(norm(m.ru + ' ' + m.en + ' ' + m.id + ' ' + (m.syn || ''))); });
 // группы списка — по направленности (первое направление)
 const GROUPS = Object.keys(DIRS).map(k => ({ k, n: DIRS[k].n })).concat([{ k: 'other', n: 'Прочее' }]);
 const firstDir = m => (DIR_OF[m.id] || ['other'])[0];

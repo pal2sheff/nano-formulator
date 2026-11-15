@@ -1,0 +1,26 @@
+/* ===== Фирменный стиль: элементы версии технолога ===== */
+:root[data-theme="light"] .brand span { display: none; }
+.fbtn { border-radius: 14px; border-color: var(--border-2); background: var(--surface); color: var(--ni-blue); }
+.fbtn:hover { border-color: var(--ni-blue); }
+.fbtn[aria-pressed="true"] { background: var(--ni-blue); border-color: var(--ni-blue); color: #fff; }
+.fbtn[aria-pressed="true"] svg { opacity: 1; }
+.fld label { color: var(--ni-muted); }
+.fld .in { border-radius: 999px; border-color: var(--border-2); background: var(--surface); padding: 0 4px; }
+.fld .in:focus-within { border-color: var(--ni-blue); box-shadow: 0 0 0 3px rgba(21, 57, 131, .12); }
+.item { border: 0; background: var(--surface-2); border-radius: 14px; padding: 8px 8px 8px 14px; }
+.item.ex { background: #F3F4F6; }
+.item input, .item select { border-radius: 999px; border-color: var(--border-2); background: var(--surface); }
+.item .nm button:hover { color: var(--ni-blue); }
+.implicit a { color: var(--ni-blue); }
+.stat .v { color: var(--ni-blue); }
+.mx td { border-radius: 8px; }
+.mx th { color: var(--text-2); }
+.legend i { border-radius: 4px; }
+.struct { border-radius: 16px; background: var(--surface-2); color: var(--ni-blue); }
+.chart h4 { font-family: var(--head); font-weight: 500; color: var(--ni-blue); font-size: 13px; }
+.stbar .bar { border-radius: 999px; }
+.grp { border: 0; background: var(--surface-2); border-radius: 14px; }
+.notes div { border-radius: 12px; }
+.tag.sol { background: var(--ok-bg); color: var(--ok); }
+table.t th { color: var(--ni-muted); }
+.prose code { border-radius: 6px; }

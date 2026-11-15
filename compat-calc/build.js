@@ -12,10 +12,17 @@ for (const [fam, w, file, subs] of fonts) for (const sub of subs) {
   const b = fs.readFileSync(R('assets/fonts', `${file}-${sub}-${w}-normal.woff2`)).toString('base64');
   ff += `@font-face{font-family:'${fam}';font-style:normal;font-weight:${w};font-display:swap;src:url(data:font/woff2;base64,${b}) format('woff2');unicode-range:${RANGE[sub]};}\n`;
 }
-const css = read('src/style.css').replace('/*FONTS*/', ff);
+// фирменный стиль сайта (как во врачебной версии): заголовки Unbounded, светлая тема
+for (const w of [400, 500, 700]) for (const sub of ['cyrillic', 'latin']) {
+  const b = fs.readFileSync(R('assets/fonts', `unbounded-${sub}-${w}-normal.woff2`)).toString('base64');
+  ff += `@font-face{font-family:'Unbounded';font-style:normal;font-weight:${w};font-display:swap;src:url(data:font/woff2;base64,${b}) format('woff2');unicode-range:${RANGE[sub]};}\n`;
+}
+const css = read('src/style.css').replace('/*FONTS*/', ff) + '\n' + read('src/ni-theme.css') + '\n' + read('src/ni-theme-tech.css');
 const db = JSON.stringify(JSON.parse(read('data/molecules.json'))).replace(/<\//g, '<\\/');
-const js = ['src/core.js', 'src/rules.js', 'src/engine.js', 'src/ui.js'].map(read).join('\n;\n').replace(/<\/script/gi, '<\\/script');
-let html = read('src/template.html');
+const js = ['src/core.js', 'src/rules.js', 'src/engine.js', 'src/ui.js'].map(read).join('\n;\n').replace(/<\/script/gi, '<\\/script') + '\n;document.documentElement.setAttribute("data-theme","light");';
+let html = read('src/template.html')
+  .replace('<html lang="ru">', '<html lang="ru" data-theme="light">')
+  .replace(/<script>try \{ var t = localStorage[\s\S]*?<\/script>\n/, '');
 html = html.replace('/*STYLE*/', () => css).replace('/*DB*/', () => db).replace('/*JS*/', () => js);
 fs.writeFileSync(R('index.html'), html);
 console.log('index.html', (html.length / 1024).toFixed(0) + ' КБ');

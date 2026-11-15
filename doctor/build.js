@@ -20,10 +20,10 @@ function make(theme) {
     // модуль сайта: светлая тема как на сайте, шрифт заголовков Unbounded
     let uf = '';
     for (const w of [400, 500, 700]) for (const sub of ['cyrillic', 'latin']) {
-      const b = fs.readFileSync(R('assets/fonts', `unbounded-${sub}-${w}-normal.woff2`)).toString('base64');
+      const b = fs.readFileSync(T('assets/fonts', `unbounded-${sub}-${w}-normal.woff2`)).toString('base64');
       uf += `@font-face{font-family:'Unbounded';font-style:normal;font-weight:${w};font-display:swap;src:url(data:font/woff2;base64,${b}) format('woff2');unicode-range:${RANGE[sub]};}\n`;
     }
-    style = uf + css + '\n' + read(R('src/ni-theme.css'));
+    style = uf + css + '\n' + read(T('src/ni-theme.css'));
     tpl = tpl.replace('<html lang="ru">', '<html lang="ru" data-theme="light">').replace(/<script>try \{ var t = localStorage[\s\S]*?<\/script>\n/, '');
   }
   const html = tpl.replace('/*STYLE*/', () => style).replace('/*DB*/', () => db).replace('/*JS*/', () => js + (theme === 'ni' ? '\n;document.documentElement.setAttribute("data-theme","light");' : ''));
