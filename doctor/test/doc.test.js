@@ -108,3 +108,25 @@ test('Формы: медь + NAC + витамин C — жидкие нельз�
   const r = F('cubis nac vitc');
   assert.equal(rate(r, 'drops'), 'no');
 });
+
+/* ---------- Мишени и метаболизм ---------- */
+test('Данные о мишенях и метаболизме есть у всех активных веществ', () => {
+  for (const m of Object.values(A.BY)) if (m.kind !== 'excipient') assert.ok(A.PK[m.id], m.id);
+});
+test('Нагрузка: тадалафил + берберин + пиперин — CYP3A4 высокая, с ингибиторами', () => {
+  const r = A.pkLoad(['tadalafil', 'berberine', 'piperine']);
+  const c = r.rows.find(x => x.k === 'CYP3A4');
+  assert.equal(c.lvl, 3);
+  assert.ok(c.inh.some(x => x.id === 'piperine'));
+});
+test('Нагрузка: мелатонин + кофеин + DIM — CYP1A2 с индуктором', () => {
+  const c = A.pkLoad(['melatonin', 'yerba', 'dim']).rows.find(x => x.k === 'CYP1A2');
+  assert.ok(c.sub.length === 2 && c.ind.some(x => x.id === 'dim'));
+});
+test('Нагрузка: никотинамид + SAMe + TMG — метилирование; UGT не выше умеренной', () => {
+  assert.equal(A.pkLoad(['nam', 'same', 'tmg']).rows.find(x => x.k === 'Метилирование').lvl, 3);
+  assert.ok(A.pkLoad(['quercetin', 'resv', 'curcumin', 'egcg']).rows.find(x => x.k === 'UGT').lvl <= 2);
+});
+test('Общие мишени: 5-HTP и леводопа — AADC', () => {
+  assert.ok(A.pkLoad(['htp', 'ldopa']).shared.some(t => t.k === 'AADC'));
+});

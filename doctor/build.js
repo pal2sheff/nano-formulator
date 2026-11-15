@@ -13,7 +13,7 @@ for (const [fam, w, file] of fonts) for (const sub of ['cyrillic', 'latin']) {
 const css = read(T('src/style.css')).replace('/*FONTS*/', ff) + '\n' + read(R('src/doc.css'));
 // во врачебной версии структуры (svg) не нужны — уменьшаем размер
 const db = JSON.stringify(JSON.parse(read(T('data/molecules.json'))).map(m => { const o = Object.assign({}, m); delete o.svg; return o; })).replace(/<\//g, '<\\/');
-const js = [T('src/core.js'), T('src/rules.js'), T('src/engine.js'), R('src/doc-data.js'), R('src/doc-engine.js'), R('src/doc-forms.js'), R('src/doc-ui.js')].map(read).join('\n;\n').replace(/<\/script/gi, '<\\/script');
+const js = [T('src/core.js'), T('src/rules.js'), T('src/engine.js'), R('src/doc-data.js'), R('src/doc-engine.js'), R('src/doc-forms.js'), R('src/doc-pk.js'), R('src/doc-ui.js')].map(read).join('\n;\n').replace(/<\/script/gi, '<\\/script');
 function make(theme) {
   let tpl = read(R('src/template.html')), style = css;
   if (theme === 'ni') {

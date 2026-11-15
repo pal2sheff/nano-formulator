@@ -184,6 +184,9 @@ function renderOut(r) {
   if (r.inter.length) h += `<div class="card"><div class="card-h"><h2>Взаимодействия</h2></div><div class="flist">${main.map(interHTML).join('')}
     ${minor.length ? `<details class="more"${main.length ? '' : ' open'}><summary>Учесть: ${minor.length}</summary><div class="flist" style="margin-top:6px">${minor.map(interHTML).join('')}</div></details>` : ''}</div></div>`;
 
+  // метаболическая нагрузка и общие мишени
+  h += pkHTML(r);
+
   // направленность
   h += `<div class="card"><div class="card-h"><h2>Направленность</h2></div><div class="dirs">` +
     r.dirList.map(d => `<div class="drow${d.ids.length > 1 ? ' strong' : ''}"><div class="dn">${esc(d.n)}</div><div class="dbar"><i style="width:${Math.round(d.ids.length / r.ms.length * 100)}%"></i></div><div class="dm">${mlinks(d.ids)}</div></div>`).join('') +
@@ -208,6 +211,22 @@ function renderOut(r) {
     </details></div>`;
   }
   out.innerHTML = h;
+}
+function pkHTML(r) {
+  const L = pkLoad(r.ids); if (!L.rows.length && !L.shared.length) return '';
+  const kid = S.cond.includes('kidney') || S.cond.includes('liver');
+  const main = L.rows.filter(x => x.sub.length), inhOnly = L.rows.filter(x => !x.sub.length);
+  const chip = (s, cls) => `<button type="button" class="cpill ${cls || ''}" data-mol="${s.id}"${s.minor ? ' data-t="минорный путь / слабое действие"' : ''}>${esc(sn(s.id))}${s.minor ? '<sup>*</sup>' : ''}</button>`;
+  const row = x => { let lv = x.lvl; if (x.k === 'Почки' && S.cond.includes('kidney')) lv = Math.max(lv, 2) + (x.sub.length >= 3 ? 1 : 0); lv = Math.min(3, lv);
+    return `<div class="pkrow"><div class="pkn">${esc(x.n)}</div><div class="pkl"><span class="lvl l${lv}">${LOAD_N[lv].t}</span></div>
+    <div class="pkm">${x.sub.map(s => chip(s)).join('')}${x.inh.length ? `<span class="pkt">тормозит:</span>${x.inh.map(s => chip(s, 'crit')).join('')}` : ''}${x.ind.length ? `<span class="pkt">ускоряет:</span>${x.ind.map(s => chip(s, 'syn')).join('')}` : ''}
+    ${x.note.length ? `<div class="pkno">${esc(x.note.join('; '))}</div>` : ''}</div></div>`; };
+  return `<div class="card"><div class="card-h"><h2>Метаболическая нагрузка</h2></div>
+    ${main.length ? `<div class="pk">${main.map(row).join('')}</div>` : '<div class="muted small">Значимых путей метаболизма у состава нет.</div>'}
+    ${inhOnly.length ? `<div class="snote"><b>Влияет на ферменты других препаратов пациента:</b> ${inhOnly.map(x => `${esc(x.k)} — ${x.inh.length ? 'тормозят ' + x.inh.map(s => esc(sn(s.id))).join(', ') : ''}${x.ind.length ? (x.inh.length ? '; ' : '') + 'ускоряют ' + x.ind.map(s => esc(sn(s.id))).join(', ') : ''}`).join('; ')}</div>` : ''}
+    ${L.shared.length ? `<div class="sugg"><div class="sugg-h">Общие мишени (эффекты суммируются)</div>${L.shared.map(t => `<div class="pkrow2"><b>${esc(t.k)}</b> — ${t.ids.map(id => `<button type="button" class="mlink" data-mol="${id}">${esc(sn(id))}</button>`).join(', ')}</div>`).join('')}</div>` : ''}
+    <div class="muted small" style="margin-top:8px">* минорный путь или слабое действие (часто — данные in vitro).${kid ? ' Нагрузка на почки и печень учитывает отмеченные состояния.' : ''}</div>
+  </div>`;
 }
 function formsHTML(FF, compact) {
   const groups = ['best', 'ok', 'limit', 'no'].map(k => [k, FF.rows.filter(r => r.rating === k)]).filter(g => g[1].length);
@@ -245,6 +264,10 @@ function renderMol(id) {
     </div>
     ${clinText(m) ? `<div class="notes2" style="margin-top:12px"><div>${esc(clinText(m))}</div></div>` : ''}
   </div>`;
+  const P1 = pkOf(id);
+  if (P1) { const line = (k, arr) => arr.length ? `<div class="pkrow2"><span class="muted">${k}:</span> ${arr.map(esc).join('; ')}</div>` : '';
+    const body = line('Рецепторы', P1.rec) + line('Ферменты-мишени', P1.enz) + line('Метаболизм и выведение', P1.met) + line('Тормозит ферменты', P1.inh) + line('Ускоряет ферменты', P1.ind);
+    if (body) h += `<div class="card"><div class="card-h"><h2>Мишени и метаболизм</h2></div>${body}</div>`; }
   const F1 = formsFor([id], {}); if (F1) h += formsHTML(F1, true);
   h += `<div class="card"><div class="card-h"><h2>Хорошо сочетается</h2><span class="sub">${p.syn.length}</span></div>${p.syn.length ? `<div class="pills">${chips(p.syn, () => 'syn')}</div>` : '<div class="muted small">Известных синергий в базе нет</div>'}</div>`;
   h += `<div class="card"><div class="card-h"><h2>Взаимодействия</h2><span class="sub">${p.inter.length}</span></div>${p.inter.length ? `<div class="pills">${chips(p.inter, x => DOC_SEV[x.sev].k)}</div><div class="legend"><span><i style="background:var(--major)"></i>серьёзно</span><span><i style="background:var(--mod)"></i>умеренно</span><span><i style="background:var(--minor-bg);outline:1px solid var(--minor)"></i>учесть</span><span class="muted">наведите — тип взаимодействия</span></div>` : '<div class="muted small">Значимых взаимодействий в базе нет</div>'}</div>`;
@@ -266,11 +289,21 @@ function renderMethod() {
 <h3>Взаимодействия</h3><p>Суммирование эффектов (гипогликемический, антиагрегантный, гипотензивный, седативный, стимулирующий, серотонинергический, нагрузка на печень), антагонизм и противоположное время приёма, конкуренция за всасывание (железо и кальций, транспорт аминокислот), ингибирование ферментов метаболизма (CYP3A4, CYP1A2, P-гликопротеин).</p>
 <p>Тяжесть: <b>Серьёзно</b> — изменить состав или разделить приём; <b>Умеренно</b> — допустимо с контролем; <b>Учесть</b> — справочно.</p>
 <h3>Противопоказания</h3><p>Для 17 клинических ситуаций (беременность, антикоагулянты, сахароснижающая терапия, гипертензия, антидепрессанты, гормонозависимые опухоли, щитовидная железа, печень, почки и др.) у каждого вещества отмечено: <b>противопоказано</b>, <b>с осторожностью</b> или <b>учесть</b>. Отмеченные состояния пациента выносятся в начало и определяют вердикт.</p>
+<h3>Мишени и метаболическая нагрузка</h3><p>Для каждого вещества указаны рецепторы, ферменты-мишени, пути метаболизма и выведения, а также ферменты, которые вещество тормозит или ускоряет (DrugBank, Natural Medicines, обзоры по фармакокинетике; данные in vitro помечены). Нагрузка на фермент считается по числу веществ состава, которые через него выводятся (основной путь — 1, минорный — 0,5): 1 — низкая, 2 — умеренная, 3 и более — высокая. Если в составе есть ингибитор этого фермента, нагрузка повышается на ступень. Для высокоёмких путей (глюкуронидация, сульфатирование, почки) нагрузка не выше умеренной; при отмеченной ХБП нагрузка на почки повышается. Ферменты, которые состав тормозит или ускоряет без собственных субстратов, показаны отдельно — это важно для других препаратов пациента. Общие мишени — рецепторы и ферменты, на которые действуют два и более вещества.</p>
 <h3>Схема приёма</h3><p>Время суток и связь с едой — по фармакологии (стимуляторы утром, седативные вечером, жирорастворимые с едой). Конфликтующие пары разносятся по разным приёмам (раскраска графа конфликтов).</p>
 <h3>Ограничения</h3><ul><li>Справочная оценка по базе из 221 активного вещества; не учитываются дозы, индивидуальные особенности и полный список принимаемых препаратов.</li><li>Перечень противопоказаний не исчерпывающий — для рецептурных препаратов действует инструкция.</li><li>Решение о назначении принимает врач.</li></ul>
 <h3>Источники</h3><ul><li>Natural Medicines Comprehensive Database; Stockley's Drug Interactions; Stockley's Herbal Medicines Interactions.</li><li>Инструкции по медицинскому применению рецептурных препаратов.</li><li>Обзорные публикации по отдельным сочетаниям (Shoba 1998 — пиперин и куркумин; Sekhar 2021 — GlyNAC и др.).</li></ul>`;
 }
 
+function pkReport(r) {
+  if (!r || !r.ids.length) return '';
+  const L = pkLoad(r.ids); const rows = L.rows.filter(x => x.sub.length && x.lvl >= 2);
+  if (!rows.length && !L.shared.length) return '';
+  const out = ['', 'Метаболическая нагрузка:'];
+  rows.forEach(x => out.push(`  ${x.n} — ${LOAD_N[x.lvl].t.toLowerCase()}: ${x.sub.map(s => sn(s.id)).join(', ')}${x.inh.length ? '; тормозят: ' + x.inh.map(s => sn(s.id)).join(', ') : ''}${x.ind.length ? '; ускоряют: ' + x.ind.map(s => sn(s.id)).join(', ') : ''}`));
+  if (L.shared.length) out.push('  Общие мишени: ' + L.shared.map(t => `${t.k} (${t.ids.map(sn).join(', ')})`).join('; '));
+  return '\n' + out.join('\n');
+}
 function formsReport(F) {
   if (!F) return '';
   const L = ['', 'Формы доставки' + (F.typical ? ' (где доза не указана — по типичной)' : '') + ':'];
@@ -321,7 +354,7 @@ function init() {
     const a = e.target.closest('[data-addmol]'); if (a) { addId(a.dataset.addmol); history.replaceState(null, '', location.pathname + location.search); route(); return; }
     const ad = e.target.closest('[data-add]'); if (ad) { addId(ad.dataset.add); return; }
     const m = e.target.closest('[data-mol]'); if (m) { location.hash = '#card/' + m.dataset.mol; return; }
-    if (e.target.closest('#copyBtn')) copyText(docReport(LAST) + formsReport(LASTF));
+    if (e.target.closest('#copyBtn')) copyText(docReport(LAST) + formsReport(LASTF) + pkReport(LAST));
   });
   document.addEventListener('mouseover', e => { const t = e.target.closest('[title].cpill'); if (t && t.title) { t.dataset.t = t.title; t.removeAttribute('title'); } const d = e.target.closest('[data-t]'); if (d) { tip.textContent = d.dataset.t; tip.hidden = false; } });
   document.addEventListener('mousemove', e => { if (tip.hidden) return; if (!e.target.closest('[data-t]')) { tip.hidden = true; return; } const w = tip.offsetWidth, hh = tip.offsetHeight; let x = e.clientX + 14, y = e.clientY + 14; if (x + w > innerWidth - 8) x = e.clientX - w - 14; if (y + hh > innerHeight - 8) y = e.clientY - hh - 14; tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; });

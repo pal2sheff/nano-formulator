@@ -420,6 +420,21 @@ details.more > summary h2 { font-size: 15px; color: var(--text); }
 .ditem .nm button { overflow-wrap: anywhere; }
 .ditem .meta .rng { color: var(--muted); white-space: nowrap; }
 
+/* метаболическая нагрузка */
+.pk { display: flex; flex-direction: column; }
+.pkrow { display: grid; grid-template-columns: minmax(150px, 230px) 96px 1fr; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); align-items: baseline; font-size: 13.5px; }
+.pkrow:last-child { border-bottom: 0; }
+.pkn { font-weight: 500; }
+.pkm { display: flex; flex-wrap: wrap; gap: 4px 5px; align-items: center; }
+.pkt { font-size: 12px; color: var(--muted); margin: 0 2px 0 6px; }
+.pkno { flex-basis: 100%; font-size: 12px; color: var(--text-2); margin-top: 2px; }
+.pkrow2 { font-size: 13.5px; padding: 3px 0; }
+.lvl { display: inline-block; font-size: 11.5px; font-weight: 600; padding: 2px 9px; border-radius: 999px; }
+.lvl.l3 { background: var(--major-bg); color: var(--major); }
+.lvl.l2 { background: var(--mod-bg); color: var(--mod); }
+.lvl.l1, .lvl.l0 { background: var(--surface-2); color: var(--muted); }
+@media (max-width: 640px) { .pkrow { grid-template-columns: minmax(0, 1fr) auto; } .pkm { grid-column: 1 / -1; } }
+
 /* ===== Тема в стиле сайта nano-identica.com (модуль сайта) =====
  * Токены сайта: --ni-blue #153983, --ni-bg #F9F9F9, --ni-muted #6D86B6, --ni-green #62B985 / #4fa774,
  * --ni-about-bg #E9ECEF, --chip-text #0F1F3A. Заголовки — Unbounded, текст — Cera Pro (как на сайте).
@@ -2249,7 +2264,7 @@ function bfForms(m) {
 }
 
 // короткое имя: без пояснений в скобках
-const sn = id => (BY[id] ? BY[id].ru : id).replace(/\s*\([^)]*\)/g, '').trim();
+const sn = id => (BY[id] ? BY[id].ru : id).replace(/\s*\([^)]*\)/g, '').replace(/\s*\/.*$/, '').trim();
 
 /* ---------- Путь введения: для каких веществ имеют смысл непероральные формы ---------- */
 const ROUTE_OF = { caps: 'oral', powder: 'oral', drops: 'oral', hydro: 'oral', oildr: 'oral', slspray: 'oral', troche: 'oral', gummy: 'oral', nasal: 'nasal', cream: 'topical', gel: 'topical', oint: 'topical', td: 'td', supp: 'rectal', vag: 'vaginal' };
@@ -2388,6 +2403,298 @@ function formsFor(ids, dose) {
   }
   return { rows, na, split, typical: items.some(i => i.typical) };
 }
+
+;
+/* ===== Мишени и метаболизм =====
+ * PK[id] = [рецепторы, ферменты-мишени, метаболизм/выведение, ингибирует, индуцирует]
+ * Поля — списки через «; ». Ключ мишени — текст до « (». Пометки: «минорно», «слабо», «in vitro».
+ * Источники: DrugBank, Natural Medicines, обзоры по фармакокинетике нутрицевтиков. Данные справочные. */
+'use strict';
+const PK = {
+  nad: ['', 'сиртуины (кофактор); PARP (кофактор)', 'CD38 (гидролиз); NPP-пирофосфатазы', '', ''],
+  nadh: ['', 'комплекс I (донор электронов)', 'окисление до НАД+; CD38', '', ''],
+  nadp: ['', 'NADPH-оксидазы и редуктазы (кофактор)', 'фосфатазы; CD38', '', ''],
+  nmn: ['', 'NMNAT (→ НАД+); сиртуины (через НАД+)', 'NMNAT; CD73 (до NR)', '', ''],
+  nmnh: ['', 'NMNAT (→ НАДН)', 'NMNAT', '', ''],
+  nr: ['', 'NRK1/2 (→ NMN); сиртуины (через НАД+)', 'NRK1/2; PNP (до никотинамида)', '', ''],
+  nam: ['', 'сиртуины (ингибирует, высокие дозы); PARP (ингибирует)', 'NNMT (метилирование); CYP2E1 (минорно); AOX1', '', ''],
+  niacin: ['GPR109A (HCAR2)', 'DGAT2 (ингибирует)', 'конъюгация с глицином; NNMT; амидирование (→ НАД+)', '', ''],
+  amp: ['аденозиновые A1/A2A (через аденозин)', 'AMPK (активатор)', 'CD73 (→ аденозин); ADA', '', ''],
+  ump: ['P2Y2/P2Y6 (через УТФ)', 'синтез CDP-холина', 'нуклеотидазы (→ уридин); почки', '', ''],
+  uridine: ['P2Y2/P2Y6 (через УТФ)', 'синтез CDP-холина', 'уридинфосфорилаза; почки', '', ''],
+  coq10: ['', 'дыхательная цепь (переносчик электронов)', 'желчь (медленно)', '', ''],
+  pqq: ['', 'PGC-1α (биогенез митохондрий); дегидрогеназы (кофактор)', 'почки (в неизменённом виде)', '', ''],
+  agpc: ['ацетилхолиновые (через ацетилхолин)', 'синтез ацетилхолина', 'GPC-фосфодиэстераза (→ холин)', '', ''],
+  citicoline: ['ацетилхолиновые (через ацетилхолин)', 'синтез фосфатидилхолина', 'гидролиз (→ цитидин + холин); почки', '', ''],
+  akg: ['', 'диоксигеназы TET/PHD (кофактор); цикл Кребса', 'цикл Кребса', '', ''],
+  trehalose: ['', 'TFEB (аутофагия)', 'трегалаза кишечника', '', ''],
+  gsh: ['', 'GPx (субстрат); GST (субстрат)', 'γ-глутамилтрансфераза; дипептидазы', '', ''],
+  sag: ['', 'GPx (через GSH)', 'тиоэстеразы (→ GSH); γ-глутамилтрансфераза', '', ''],
+  gsh_lipo: ['', 'GPx (субстрат); GST (субстрат)', 'γ-глутамилтрансфераза; дипептидазы', '', ''],
+  nac: ['mGluR2/3 (через обмен цистин/глутамат)', 'синтез GSH (цистеин)', 'деацетилирование; почки', '', ''],
+  ergo: ['', 'антиоксидант (транспорт OCTN1)', 'почки (в неизменённом виде)', '', ''],
+  ala: ['', 'PDH/αKGDH (кофактор); Nrf2 (активатор)', 'β-окисление; S-метилирование; почки', '', ''],
+  astax: ['', 'Nrf2 (активатор)', 'CYP3A4 (минорно); желчь', '', ''],
+  lutein: ['', 'макулярный пигмент', 'желчь', '', ''],
+  lycopene: ['', 'антиоксидант', 'BCO2; желчь', '', ''],
+  fucox: ['', 'UCP1 (WAT)', 'эстеразы (→ фукоксантинол); печень', '', ''],
+  htyr: ['', 'Nrf2 (активатор)', 'COMT; SULT; UGT; ADH/ALDH', '', ''],
+  ferulic: ['', 'антиоксидант', 'UGT; SULT', '', ''],
+  c60: ['', '', 'не метаболизируется', '', ''],
+  quercetin: ['', 'PI3K (ингибирует); BCL-xL (сенолитик)', 'UGT; SULT; COMT', 'CYP3A4 (слабо); CYP2C8; CYP2C9 (слабо); P-gp', ''],
+  fisetin: ['', 'BCL-xL/PI3K (сенолитик)', 'UGT; SULT; COMT', '', ''],
+  egcg: ['', 'DNMT (ингибирует); COMT (ингибирует)', 'COMT; UGT; SULT; микробиота', 'CYP3A4 (слабо); COMT; OATP', ''],
+  dhq: ['', 'антиоксидант', 'UGT; COMT', '', ''],
+  curcumin: ['', 'NF-κB (ингибирует); ЦОГ-2 (ингибирует); 5-LOX (ингибирует)', 'UGT; SULT; редуктазы (→ тетрагидрокуркумин)', 'CYP3A4 (слабо); CYP2C9 (слабо); CYP1A2 (слабо); UGT; P-gp', ''],
+  curc_mic: ['', 'NF-κB (ингибирует); ЦОГ-2 (ингибирует)', 'UGT; SULT', 'CYP3A4 (слабо); CYP2C9 (слабо); UGT; P-gp', ''],
+  thc: ['', 'NF-κB (ингибирует)', 'UGT; SULT', '', ''],
+  phycocyanin: ['', 'ЦОГ-2 (ингибирует)', 'протеазы ЖКТ', '', ''],
+  spirulina: ['', '', 'пищеварение', '', ''],
+  pycno: ['', 'eNOS (активатор); ЦОГ (слабо)', 'микробиота (→ валеролактоны); UGT; SULT', '', ''],
+  grapeseed: ['', 'антиоксидант', 'микробиота; UGT', '', ''],
+  pterost: ['', 'SIRT1 (активатор); AMPK (активатор)', 'UGT; SULT', 'CYP2C9 (in vitro); CYP2C8 (in vitro)', ''],
+  resv: ['', 'SIRT1 (активатор); AMPK (активатор)', 'UGT; SULT', 'CYP3A4 (слабо); CYP2C9 (in vitro); CYP2C19 (in vitro)', ''],
+  polygonum: ['', 'SIRT1 (активатор)', 'UGT; SULT', 'CYP3A4 (слабо)', ''],
+  ursolic: ['', 'NF-κB (ингибирует); STAT3 (ингибирует)', 'CYP3A4 (вероятно)', '', ''],
+  oleanolic: ['', 'NF-κB (ингибирует); Nrf2 (активатор)', 'CYP3A4 (вероятно)', '', ''],
+  silymarin: ['', 'Nrf2 (активатор)', 'UGT; SULT; желчь', 'CYP3A4 (слабо); CYP2C9 (слабо); UGT; P-gp; OATP', ''],
+  phospholip: ['', 'мембраны гепатоцитов', 'фосфолипазы', '', ''],
+  mgcit: ['NMDA (блок Mg²⁺); кальциевые каналы', 'АТФ-зависимые ферменты (кофактор)', 'почки', '', ''],
+  mgorot: ['NMDA (блок Mg²⁺); кальциевые каналы', 'АТФ-зависимые ферменты (кофактор)', 'почки', '', ''],
+  mgbis: ['NMDA (блок Mg²⁺); глициновые', 'АТФ-зависимые ферменты (кофактор)', 'почки', '', ''],
+  mgtaur: ['NMDA (блок Mg²⁺); GABA-A (таурин)', 'АТФ-зависимые ферменты (кофактор)', 'почки', '', ''],
+  cacit: ['CaSR', '', 'почки; кишечник', '', ''],
+  camal: ['CaSR', '', 'почки; кишечник', '', ''],
+  cagluc: ['CaSR', 'β-глюкуронидаза (ингибирует)', 'почки', '', ''],
+  cabhb: ['HCAR2 (BHB)', 'HDAC (ингибирует)', 'BDH1 (кетолиз)', '', ''],
+  znbis: ['', 'цинкзависимые ферменты (кофактор); SOD1', 'кишечник; желчь', '', ''],
+  znpic: ['', 'цинкзависимые ферменты (кофактор); SOD1', 'кишечник; желчь', '', ''],
+  zngluc: ['', 'цинкзависимые ферменты (кофактор); SOD1', 'кишечник; желчь', '', ''],
+  cubis: ['', 'цитохромоксидаза (кофактор); SOD1; лизилоксидаза', 'желчь', '', ''],
+  fefum: ['', 'гемоглобин; цитохромы', 'не выводится активно (регуляция гепсидином)', '', ''],
+  crpic: ['инсулиновый рецептор (хромодулин)', '', 'почки', '', ''],
+  semet: ['', 'GPx; тиоредоксинредуктаза (селенопротеины)', 'транссульфурирование; почки', '', ''],
+  segly: ['', 'GPx; тиоредоксинредуктаза (селенопротеины)', 'почки', '', ''],
+  ki: ['', 'тиреопероксидаза (субстрат)', 'почки; щитовидная железа', '', ''],
+  boron: ['', '', 'почки (в неизменённом виде)', '', ''],
+  thiamine: ['', 'PDH (кофактор); транскетолаза (кофактор)', 'тиаминкиназа; почки', '', ''],
+  benfo: ['', 'транскетолаза (через тиамин)', 'фосфатазы и эстеразы (→ тиамин); почки', '', ''],
+  pantoth: ['', 'синтез КоА', 'почки', '', ''],
+  pyridox: ['', 'PLP-зависимые ферменты (AADC, трансаминазы)', 'пиридоксалькиназа; альдегидоксидаза; почки', '', ''],
+  p5p: ['', 'PLP-зависимые ферменты (AADC, трансаминазы)', 'щелочная фосфатаза (→ пиридоксаль); почки', '', ''],
+  biotin: ['', 'карбоксилазы (кофактор)', 'почки', '', ''],
+  mthf: ['', 'метионинсинтаза (донор метила)', 'метионинсинтаза; почки', '', ''],
+  folic: ['', 'DHFR (→ ТГФ)', 'DHFR (медленно); почки', '', ''],
+  mecbl: ['', 'метионинсинтаза (кофактор)', 'желчь; почки', '', ''],
+  cncbl: ['', 'метионинсинтаза (после превращения)', 'децианирование; почки', '', ''],
+  vitc: ['', 'диоксигеназы (кофактор: коллаген, карнитин, катехоламины)', 'почки (насыщаемая реабсорбция)', '', ''],
+  vitc_lipo: ['', 'диоксигеназы (кофактор)', 'почки', '', ''],
+  vitd3: ['VDR (через кальцитриол)', '', 'CYP2R1; CYP27B1; CYP24A1; CYP3A4 (минорно)', '', ''],
+  vite: ['PXR (слабо)', 'PKC (ингибирует)', 'CYP4F2', '', ''],
+  vitk2: ['SXR/PXR', 'γ-глутамилкарбоксилаза (кофактор)', 'CYP4F2; желчь', '', ''],
+  retinol: ['RAR/RXR (через ретиноевую кислоту)', '', 'ADH/RDH; RALDH; CYP26', '', ''],
+  b14: ['', '', '', '', ''],
+  b15: ['', 'донор метила (через DMG)', 'деметилирование (→ DMG)', '', ''],
+  inositol: ['инсулиновая сигнализация (вторичный мессенджер)', '', 'MIOX; почки', '', ''],
+  dci: ['инсулиновая сигнализация (вторичный мессенджер)', '', 'почки', '', ''],
+  arg: ['', 'NOS (субстрат)', 'аргиназа; NOS', '', ''],
+  cit: ['', 'NOS (через аргинин)', 'ASS/ASL (→ аргинин, почки)', '', ''],
+  citmal: ['', 'NOS (через аргинин)', 'ASS/ASL (→ аргинин, почки); цикл Кребса (малат)', '', ''],
+  lys: ['', '', 'сахаропиновый путь (печень)', '', ''],
+  orn: ['', 'цикл мочевины (субстрат); ODC', 'OTC; ODC', '', ''],
+  asp: ['NMDA (агонист)', '', 'трансаминазы', '', ''],
+  daa: ['NMDA (агонист)', 'стероидогенез (StAR)', 'D-аспартатоксидаза', '', ''],
+  tyr: ['', 'тирозингидроксилаза (субстрат)', 'тирозингидроксилаза; тирозинаминотрансфераза', '', ''],
+  taurine: ['GABA-A (агонист); глициновые', '', 'почки; конъюгация желчных кислот', '', ''],
+  gaba: ['GABA-A (агонист); GABA-B (агонист)', '', 'GABA-трансаминаза', '', ''],
+  theanine: ['NMDA (слабо); AMPA (слабо)', 'синтез GABA (косвенно)', 'глутаминаза почек', '', ''],
+  htp: ['серотониновые (через серотонин)', 'AADC (→ серотонин)', 'AADC; MAO-A', '', ''],
+  lcar: ['', 'CPT1 (транспорт жирных кислот)', 'почки', '', ''],
+  alcar: ['ацетилхолиновые (донор ацетила)', 'CPT1 (транспорт жирных кислот)', 'эстеразы (деацетилирование); почки', '', ''],
+  carnosine: ['', 'антигликирующее действие', 'карнозиназа (CNDP1)', '', ''],
+  betainehcl: ['', '', 'BHMT (донор метила)', '', ''],
+  tmg: ['', 'BHMT (донор метила)', 'BHMT (→ DMG)', '', ''],
+  glycine: ['глициновые (агонист); NMDA (коагонист)', '', 'система расщепления глицина', '', ''],
+  spermidine: ['', 'аутофагия (EP300 — ингибирует)', 'SSAT; полиаминоксидаза', '', ''],
+  same: ['', 'метилтрансферазы (донор метила)', 'метилтрансферазы (→ SAH)', '', ''],
+  glucosamine: ['', 'синтез гликозаминогликанов', 'гексозаминовый путь', '', ''],
+  testo: ['AR (агонист)', '', 'CYP3A4; 5α-редуктаза; ароматаза (CYP19); UGT', '', ''],
+  dhea: ['AR (через метаболиты); ER (через метаболиты); σ1', '', 'SULT; 3β-HSD; CYP3A4', '', ''],
+  keto7: ['', 'термогенные ферменты печени', '11β-HSD1; печень', '', ''],
+  preg: ['GABA-A (через аллопрегнанолон); NMDA (сульфат)', '', 'CYP17A1; 3β-HSD; SULT', '', ''],
+  prog: ['PR (агонист); GABA-A (через аллопрегнанолон)', '', 'CYP3A4; 5α-редуктаза; CYP2C19 (минорно)', '', ''],
+  e2: ['ER (агонист)', '', 'CYP3A4; CYP1A2; UGT; SULT; COMT', '', ''],
+  e3: ['ER (слабый агонист)', '', 'UGT; SULT', '', ''],
+  anastrozole: ['', 'ароматаза (ингибирует)', 'CYP3A4; UGT', 'CYP1A2 (in vitro); CYP2C9 (in vitro)', ''],
+  metformin: ['', 'AMPK (активатор); комплекс I (ингибирует)', 'почки (в неизменённом виде, OCT2/MATE)', '', ''],
+  sitagliptin: ['', 'DPP-4 (ингибирует)', 'почки (в неизменённом виде); CYP3A4 (минорно)', '', ''],
+  tadalafil: ['', 'ФДЭ-5 (ингибирует)', 'CYP3A4', '', ''],
+  semaglutide: ['GLP-1R (агонист)', '', 'протеолиз; β-окисление', '', ''],
+  tirzepatide: ['GLP-1R (агонист); GIPR (агонист)', '', 'протеолиз; β-окисление', '', ''],
+  semax: ['меланокортиновые (фрагмент АКТГ)', 'BDNF (повышает экспрессию)', 'пептидазы', '', ''],
+  selank: ['GABA-A (модулятор)', 'энкефалиназы (ингибирует)', 'пептидазы', '', ''],
+  dsip: ['', '', 'пептидазы', '', ''],
+  epitalon: ['', 'теломераза (активатор, данные ограничены)', 'пептидазы', '', ''],
+  pt141: ['MC3R/MC4R (агонист)', '', 'пептидазы', '', ''],
+  oxytocin: ['OXTR (агонист)', '', 'окситоциназа (IRAP)', '', ''],
+  motsc: ['', 'AMPK (активатор)', 'пептидазы', '', ''],
+  ipamorelin: ['GHSR (агонист)', '', 'пептидазы', '', ''],
+  sod: ['', 'супероксиддисмутаза', 'протеазы ЖКТ', '', ''],
+  catalase: ['', 'каталаза', 'протеазы ЖКТ', '', ''],
+  gpx: ['', 'глутатионпероксидаза', 'протеазы ЖКТ', '', ''],
+  bromelain: ['', 'протеаза; брадикинин (снижает)', 'протеазы ЖКТ', '', ''],
+  papain: ['', 'протеаза', 'протеазы ЖКТ', '', ''],
+  nattokinase: ['', 'фибрин (фибринолиз); PAI-1 (снижает)', 'протеазы ЖКТ', '', ''],
+  pancrelipase: ['', 'липаза; протеазы; амилаза', 'протеазы ЖКТ', '', ''],
+  amylase: ['', 'амилаза', 'протеазы ЖКТ', '', ''],
+  lactase: ['', 'лактаза', 'протеазы ЖКТ', '', ''],
+  cellulase: ['', 'целлюлаза', 'протеазы ЖКТ', '', ''],
+  maltdiast: ['', 'амилаза', 'протеазы ЖКТ', '', ''],
+  phytase: ['', 'фитаза', 'протеазы ЖКТ', '', ''],
+  akkermansia: ['TLR2 (белок Amuc_1100)', '', '', '', ''],
+  inulin: ['', '', 'микробиота (ферментация)', '', ''],
+  psyllium: ['', '', 'микробиота (частично)', '', ''],
+  betaglucan: ['Dectin-1; CR3', '', 'микробиота', '', ''],
+  flax: ['ER (лигнаны → энтеролактон)', '', 'микробиота', '', ''],
+  hyaluronate: ['CD44', '', 'гиалуронидазы', '', ''],
+  chondroitin: ['', '', 'микробиота; деградация', '', ''],
+  pea: ['PPAR-α (агонист); GPR55', '', 'FAAH; NAAA', '', ''],
+  dha: ['GPR120 (FFAR4); PPAR (агонист)', 'ЦОГ/ЛОГ (→ резольвины)', 'β-окисление; ЦОГ/ЛОГ', '', ''],
+  sterols: ['', 'всасывание холестерина (NPC1L1, конкуренция)', 'ABCG5/8 (выведение)', '', ''],
+  oryzanol: ['', '', 'эстеразы', '', ''],
+  berberine: ['', 'AMPK (активатор); PCSK9 (снижает)', 'CYP2D6; CYP1A2; CYP3A4', 'CYP2D6; CYP3A4; CYP2C9; P-gp', ''],
+  bittermelon: ['инсулиновый рецептор (полипептид-p, инсулиноподобно)', 'AMPK (активатор)', '', '', ''],
+  gymnema: ['рецепторы сладкого вкуса (блок)', 'всасывание глюкозы (снижает)', '', '', ''],
+  galega: ['', 'AMPK (активатор)', '', '', ''],
+  cinnamon: ['', 'инсулиновая сигнализация (PTP1B — ингибирует)', 'ALDH (→ коричная кислота); CYP2A6 (кумарин)', '', ''],
+  opuntia: ['', '', '', '', ''],
+  fig: ['', '', '', '', ''],
+  mangiferin: ['', 'AMPK (активатор); α-глюкозидаза (ингибирует)', 'микробиота; UGT', '', ''],
+  cga: ['', 'глюкозо-6-фосфатаза (ингибирует)', 'эстеразы микробиоты; COMT; UGT', '', ''],
+  yerba: ['аденозиновые A1/A2A (антагонист, кофеин)', 'ФДЭ (ингибирует)', 'CYP1A2', '', ''],
+  synephrine: ['β3-адреноцепторы (агонист); α1-адреноцепторы (слабо)', '', 'MAO-A', '', ''],
+  citrus: ['', '', 'микробиота; UGT', 'CYP3A4 (слабо)', ''],
+  diosmin: ['', 'венотоник (норадреналин — продлевает)', 'микробиота (→ диосметин); UGT', '', ''],
+  pomegranate: ['', '', 'микробиота (→ уролитины); UGT', 'CYP3A4 (слабо); CYP2C9 (слабо)', ''],
+  cherry: ['MT1/MT2 (мелатонин сырья, мало)', '', '', '', ''],
+  roxpear: ['', '', '', '', ''],
+  gardenia: ['', '', 'β-глюкозидазы микробиоты (→ генипин)', '', ''],
+  fenugreek: ['', 'α-амилаза (ингибирует)', '', '', ''],
+  tongkat: ['', 'ароматаза (данные ограничены)', '', '', ''],
+  fadogia: ['', '', '', '', ''],
+  tribulus: ['', '', '', '', ''],
+  mucuna: ['дофаминовые (через дофамин)', 'AADC (→ дофамин)', 'AADC; COMT; MAO-B', '', ''],
+  safedmusli: ['', '', '', '', ''],
+  damiana: ['', 'ароматаза (in vitro)', '', '', ''],
+  epimedium: ['', 'ФДЭ-5 (ингибирует, слабо)', 'микробиота; UGT', '', ''],
+  sawpalm: ['α1-адреноцепторы (слабо); AR (слабо)', '5α-редуктаза (ингибирует)', 'печень', '', ''],
+  pygeum: ['', '', '', '', ''],
+  pumpkin: ['', '5α-редуктаза (слабо)', '', '', ''],
+  nettle: ['SHBG (связывание)', 'ароматаза (слабо)', '', '', ''],
+  redclover: ['ER (ERβ, агонист)', '', 'UGT; SULT; микробиота', '', ''],
+  soy: ['ER (ERβ, агонист)', 'тиреопероксидаза (ингибирует)', 'UGT; SULT; микробиота', '', ''],
+  genistein: ['ER (ERβ, агонист)', 'тирозинкиназы (ингибирует); тиреопероксидаза (ингибирует)', 'UGT; SULT; микробиота', '', ''],
+  formononetin: ['ER (ERβ, агонист)', '', 'CYP1A2 (→ даидзеин); UGT', '', ''],
+  hops: ['ER (8-пренилнарингенин); GABA-A (модулятор)', '', 'CYP2C19; UGT', '', ''],
+  dim: ['AhR (агонист)', 'CYP1A1/1A2 (индуцирует)', 'печень', '', 'CYP1A2'],
+  i3c: ['AhR (агонист)', 'CYP1A1/1A2 (индуцирует)', 'кислота желудка (→ DIM)', '', 'CYP1A2'],
+  chrysin: ['', 'ароматаза (in vitro)', 'UGT; SULT', '', ''],
+  apigenin: ['GABA-A (бензодиазепиновый сайт)', 'CD38 (ингибирует)', 'UGT; SULT', 'CYP2C9 (слабо); CYP3A4 (слабо)', ''],
+  luteolin: ['', 'NF-κB (ингибирует)', 'UGT; COMT', '', ''],
+  myricetin: ['', 'антиоксидант', 'UGT; COMT', '', ''],
+  diosgenin: ['', '', 'печень', '', ''],
+  ashwagandha: ['GABA-A (агонист)', 'ось ГГН (снижает кортизол)', '', '', ''],
+  rhodiola: ['', 'MAO-A/B (ингибирует, слабо)', 'UGT', 'CYP3A4 (in vitro); CYP2C9 (in vitro)', ''],
+  eleuthero: ['', '', '', '', ''],
+  astragalus: ['TLR4', 'теломераза (циклоастрагенол, данные ограничены)', '', '', ''],
+  shilajit: ['', '', '', '', ''],
+  ginseng: ['GR (гинзенозиды); NMDA', '', 'микробиота (→ компаунд K); CYP3A4', '', 'CYP3A4 (слабо)'],
+  tulsi: ['', 'ЦОГ-2 (ингибирует)', '', '', ''],
+  schisandra: ['', '', 'CYP3A4', 'CYP3A4; P-gp', ''],
+  bacopa: ['ацетилхолиновые (косвенно)', 'AChE (ингибирует, слабо)', '', 'CYP3A4 (in vitro); CYP2C19 (in vitro)', ''],
+  ginkgo: ['PAF-рецептор (антагонист)', '', 'CYP3A4 (минорно)', 'CYP2C9 (слабо)', 'CYP2C19'],
+  lionsmane: ['', 'NGF (повышает синтез)', '', '', ''],
+  catsclaw: ['', 'NF-κB (ингибирует)', '', 'CYP3A4', ''],
+  andrographolide: ['', 'NF-κB (ингибирует)', 'SULT; конъюгация с GSH', 'CYP1A2 (in vitro); CYP2C9 (in vitro)', ''],
+  boswellia: ['', '5-LOX (ингибирует)', 'CYP3A4', '', ''],
+  glycyrrhizin: ['', '11β-HSD2 (ингибирует)', 'микробиота (→ глицирретиновая кислота); UGT', '', 'CYP3A4 (слабо)'],
+  artichoke: ['', 'желчеотделение (цинарин)', 'UGT', '', ''],
+  dandelion: ['', '', '', '', ''],
+  udca: ['TGR5; FXR (слабо)', '', 'конъюгация (таурин/глицин); микробиота', '', ''],
+  tudca: ['TGR5', 'ER-стресс (химический шаперон)', 'деконъюгация микробиотой', '', ''],
+  oleuropein: ['', 'антиоксидант', 'β-глюкозидаза (→ гидрокситирозол); COMT', '', ''],
+  cape: ['', 'NF-κB (ингибирует)', 'эстеразы; UGT', '', ''],
+  tannins: ['', 'белки (связывание)', 'микробиота', '', ''],
+  sulforaphane: ['', 'Nrf2 (активатор); HDAC (ингибирует)', 'GST; меркаптуратный путь', '', 'GST; NQO1'],
+  piperine: ['TRPV1 (агонист)', '', 'CYP1A2; CYP2D6', 'CYP3A4; CYP2D6; CYP1A2; UGT; P-gp', ''],
+  melatonin: ['MT1/MT2 (агонист)', '', 'CYP1A2; CYP2C19 (минорно)', '', ''],
+  ldopa: ['дофаминовые (через дофамин)', 'AADC (→ дофамин)', 'AADC; COMT; MAO-B', '', ''],
+  ginger: ['TRPV1 (агонист); 5-HT3 (антагонист)', 'ЦОГ (ингибирует, слабо)', 'UGT; SULT', '', ''],
+  rosemary: ['', 'антиоксидант', '', '', ''],
+  gentian: ['горькие рецепторы TAS2R', '', '', '', '']
+};
+
+/* ---------- Разбор ---------- */
+const PK_LIST = s => String(s || '').split(/;\s*/).map(x => x.trim()).filter(Boolean);
+const PK_KEY = s => s.replace(/\s*\(.*$/, '').trim();
+const PK_MINOR = s => /минорно|слабо|in vitro|вероятно/.test(s);
+// пути метаболизма, по которым считается нагрузка
+const ENZ = [
+  ['CYP3A4', /CYP3A4/], ['CYP2D6', /CYP2D6/], ['CYP1A2', /CYP1A2/], ['CYP2C9', /CYP2C9/], ['CYP2C19', /CYP2C19/], ['CYP2C8', /CYP2C8/],
+  ['CYP2E1', /CYP2E1/], ['CYP2A6', /CYP2A6/], ['CYP4F2', /CYP4F2/], ['UGT', /\bUGT/], ['SULT', /\bSULT/], ['COMT', /\bCOMT/], ['MAO', /\bMAO/],
+  ['AADC', /\bAADC/], ['GST', /\bGST\b/], ['P-gp', /P-gp/], ['OATP', /OATP/],
+  ['Метилирование', /NNMT|BHMT|метилтрансфераз|S-метилир|метионинсинтаз|деметилир/],
+  ['Почки', /почки/]
+];
+const ENZ_N = { 'Метилирование': 'Метилирование (SAMe, NNMT, BHMT)', 'Почки': 'Почки (выведение)', 'UGT': 'UGT (глюкуронидация)', 'SULT': 'SULT (сульфатирование)', 'COMT': 'COMT', 'MAO': 'MAO', 'AADC': 'AADC (декарбоксилаза)', 'GST': 'GST (глутатион-конъюгация)', 'P-gp': 'P-гликопротеин', 'OATP': 'OATP (транспорт)' };
+const TAG_INH = { cyp3a4inh: 'CYP3A4', cyp3a4inh_mild: 'CYP3A4 (слабо)', cyp2d6inh: 'CYP2D6', pgpinh: 'P-gp' };
+const TAG_IND = { cyp1a2ind: 'CYP1A2' };
+function pkOf(id) {
+  const p = PK[id]; if (!p) return null;
+  const m = BY[id];
+  const inh = PK_LIST(p[3]), ind = PK_LIST(p[4]);
+  for (const t in TAG_INH) if (m.T.has(t) && !inh.some(x => PK_KEY(x) === PK_KEY(TAG_INH[t]))) inh.push(TAG_INH[t]);
+  for (const t in TAG_IND) if (m.T.has(t) && !ind.some(x => PK_KEY(x) === TAG_IND[t])) ind.push(TAG_IND[t]);
+  return { rec: PK_LIST(p[0]), enz: PK_LIST(p[1]), met: PK_LIST(p[2]), inh, ind };
+}
+function enzKeys(list) {
+  const out = [];
+  list.forEach(s => ENZ.forEach(([k, re]) => { if (re.test(s) && !out.some(o => o.k === k)) out.push({ k, minor: PK_MINOR(s) }); }));
+  return out;
+}
+
+/* ---------- Нагрузка состава ---------- */
+function pkLoad(ids, doseMg) {
+  const by = {};
+  const get = k => (by[k] = by[k] || { k, n: ENZ_N[k] || k, sub: [], inh: [], ind: [] });
+  ids.forEach(id => {
+    const p = pkOf(id); if (!p) return;
+    enzKeys(p.met).forEach(e => get(e.k).sub.push({ id, minor: e.minor }));
+    enzKeys(p.inh).forEach(e => get(e.k).inh.push({ id, minor: e.minor }));
+    enzKeys(p.ind).forEach(e => get(e.k).ind.push({ id, minor: e.minor }));
+  });
+  const rows = Object.values(by).map(r => {
+    const w = r.sub.reduce((a, s) => a + (s.minor ? 0.5 : 1), 0);
+    const inhW = r.inh.filter(x => r.sub.some(s => s.id !== x.id)).reduce((a, s) => a + (s.minor ? 0.5 : 1), 0);
+    let lvl = w >= 3 ? 3 : w >= 2 ? 2 : r.sub.length ? 1 : 0;
+    if (r.sub.length && inhW >= 1) lvl = Math.min(3, lvl + 1);
+    else if (r.sub.length && inhW > 0) lvl = Math.max(lvl, 2);
+    // высокоёмкие пути: нагрузка не выше умеренной (почки — значимо при ХБП)
+    if (['UGT', 'SULT', 'Почки', 'GST'].includes(r.k)) lvl = Math.min(lvl, 2);
+    const note = [];
+    if (r.inh.some(x => r.sub.some(s => s.id !== x.id))) note.push('ингибитор в составе — концентрация субстратов может расти');
+    if (r.ind.some(x => r.sub.some(s => s.id !== x.id))) note.push('индуктор в составе — эффект субстратов может ослабевать');
+    if (r.sub.length >= 2) note.push('конкуренция субстратов за фермент');
+    return Object.assign(r, { w, lvl, note });
+  }).filter(r => r.sub.length || r.inh.length || r.ind.length);
+  rows.sort((a, b) => b.lvl - a.lvl || b.sub.length - a.sub.length || b.inh.length - a.inh.length);
+  // общие мишени
+  const tgt = {};
+  ids.forEach(id => { const p = pkOf(id); if (!p) return; p.rec.concat(p.enz).forEach(s => { const k = PK_KEY(s); if (!k) return; (tgt[k] = tgt[k] || new Set()).add(id); }); });
+  const shared = Object.entries(tgt).filter(([, s]) => s.size >= 2).map(([k, s]) => ({ k, ids: [...s] })).sort((a, b) => b.ids.length - a.ids.length);
+  return { rows, shared };
+}
+const LOAD_N = { 3: { k: 'major', t: 'Высокая' }, 2: { k: 'mod', t: 'Умеренная' }, 1: { k: 'minor', t: 'Низкая' }, 0: { k: 'minor', t: '—' } };
 
 ;
 /* ===== Врачебная версия: интерфейс ===== */
@@ -2576,6 +2883,9 @@ function renderOut(r) {
   if (r.inter.length) h += `<div class="card"><div class="card-h"><h2>Взаимодействия</h2></div><div class="flist">${main.map(interHTML).join('')}
     ${minor.length ? `<details class="more"${main.length ? '' : ' open'}><summary>Учесть: ${minor.length}</summary><div class="flist" style="margin-top:6px">${minor.map(interHTML).join('')}</div></details>` : ''}</div></div>`;
 
+  // метаболическая нагрузка и общие мишени
+  h += pkHTML(r);
+
   // направленность
   h += `<div class="card"><div class="card-h"><h2>Направленность</h2></div><div class="dirs">` +
     r.dirList.map(d => `<div class="drow${d.ids.length > 1 ? ' strong' : ''}"><div class="dn">${esc(d.n)}</div><div class="dbar"><i style="width:${Math.round(d.ids.length / r.ms.length * 100)}%"></i></div><div class="dm">${mlinks(d.ids)}</div></div>`).join('') +
@@ -2600,6 +2910,22 @@ function renderOut(r) {
     </details></div>`;
   }
   out.innerHTML = h;
+}
+function pkHTML(r) {
+  const L = pkLoad(r.ids); if (!L.rows.length && !L.shared.length) return '';
+  const kid = S.cond.includes('kidney') || S.cond.includes('liver');
+  const main = L.rows.filter(x => x.sub.length), inhOnly = L.rows.filter(x => !x.sub.length);
+  const chip = (s, cls) => `<button type="button" class="cpill ${cls || ''}" data-mol="${s.id}"${s.minor ? ' data-t="минорный путь / слабое действие"' : ''}>${esc(sn(s.id))}${s.minor ? '<sup>*</sup>' : ''}</button>`;
+  const row = x => { let lv = x.lvl; if (x.k === 'Почки' && S.cond.includes('kidney')) lv = Math.max(lv, 2) + (x.sub.length >= 3 ? 1 : 0); lv = Math.min(3, lv);
+    return `<div class="pkrow"><div class="pkn">${esc(x.n)}</div><div class="pkl"><span class="lvl l${lv}">${LOAD_N[lv].t}</span></div>
+    <div class="pkm">${x.sub.map(s => chip(s)).join('')}${x.inh.length ? `<span class="pkt">тормозит:</span>${x.inh.map(s => chip(s, 'crit')).join('')}` : ''}${x.ind.length ? `<span class="pkt">ускоряет:</span>${x.ind.map(s => chip(s, 'syn')).join('')}` : ''}
+    ${x.note.length ? `<div class="pkno">${esc(x.note.join('; '))}</div>` : ''}</div></div>`; };
+  return `<div class="card"><div class="card-h"><h2>Метаболическая нагрузка</h2></div>
+    ${main.length ? `<div class="pk">${main.map(row).join('')}</div>` : '<div class="muted small">Значимых путей метаболизма у состава нет.</div>'}
+    ${inhOnly.length ? `<div class="snote"><b>Влияет на ферменты других препаратов пациента:</b> ${inhOnly.map(x => `${esc(x.k)} — ${x.inh.length ? 'тормозят ' + x.inh.map(s => esc(sn(s.id))).join(', ') : ''}${x.ind.length ? (x.inh.length ? '; ' : '') + 'ускоряют ' + x.ind.map(s => esc(sn(s.id))).join(', ') : ''}`).join('; ')}</div>` : ''}
+    ${L.shared.length ? `<div class="sugg"><div class="sugg-h">Общие мишени (эффекты суммируются)</div>${L.shared.map(t => `<div class="pkrow2"><b>${esc(t.k)}</b> — ${t.ids.map(id => `<button type="button" class="mlink" data-mol="${id}">${esc(sn(id))}</button>`).join(', ')}</div>`).join('')}</div>` : ''}
+    <div class="muted small" style="margin-top:8px">* минорный путь или слабое действие (часто — данные in vitro).${kid ? ' Нагрузка на почки и печень учитывает отмеченные состояния.' : ''}</div>
+  </div>`;
 }
 function formsHTML(FF, compact) {
   const groups = ['best', 'ok', 'limit', 'no'].map(k => [k, FF.rows.filter(r => r.rating === k)]).filter(g => g[1].length);
@@ -2637,6 +2963,10 @@ function renderMol(id) {
     </div>
     ${clinText(m) ? `<div class="notes2" style="margin-top:12px"><div>${esc(clinText(m))}</div></div>` : ''}
   </div>`;
+  const P1 = pkOf(id);
+  if (P1) { const line = (k, arr) => arr.length ? `<div class="pkrow2"><span class="muted">${k}:</span> ${arr.map(esc).join('; ')}</div>` : '';
+    const body = line('Рецепторы', P1.rec) + line('Ферменты-мишени', P1.enz) + line('Метаболизм и выведение', P1.met) + line('Тормозит ферменты', P1.inh) + line('Ускоряет ферменты', P1.ind);
+    if (body) h += `<div class="card"><div class="card-h"><h2>Мишени и метаболизм</h2></div>${body}</div>`; }
   const F1 = formsFor([id], {}); if (F1) h += formsHTML(F1, true);
   h += `<div class="card"><div class="card-h"><h2>Хорошо сочетается</h2><span class="sub">${p.syn.length}</span></div>${p.syn.length ? `<div class="pills">${chips(p.syn, () => 'syn')}</div>` : '<div class="muted small">Известных синергий в базе нет</div>'}</div>`;
   h += `<div class="card"><div class="card-h"><h2>Взаимодействия</h2><span class="sub">${p.inter.length}</span></div>${p.inter.length ? `<div class="pills">${chips(p.inter, x => DOC_SEV[x.sev].k)}</div><div class="legend"><span><i style="background:var(--major)"></i>серьёзно</span><span><i style="background:var(--mod)"></i>умеренно</span><span><i style="background:var(--minor-bg);outline:1px solid var(--minor)"></i>учесть</span><span class="muted">наведите — тип взаимодействия</span></div>` : '<div class="muted small">Значимых взаимодействий в базе нет</div>'}</div>`;
@@ -2658,11 +2988,21 @@ function renderMethod() {
 <h3>Взаимодействия</h3><p>Суммирование эффектов (гипогликемический, антиагрегантный, гипотензивный, седативный, стимулирующий, серотонинергический, нагрузка на печень), антагонизм и противоположное время приёма, конкуренция за всасывание (железо и кальций, транспорт аминокислот), ингибирование ферментов метаболизма (CYP3A4, CYP1A2, P-гликопротеин).</p>
 <p>Тяжесть: <b>Серьёзно</b> — изменить состав или разделить приём; <b>Умеренно</b> — допустимо с контролем; <b>Учесть</b> — справочно.</p>
 <h3>Противопоказания</h3><p>Для 17 клинических ситуаций (беременность, антикоагулянты, сахароснижающая терапия, гипертензия, антидепрессанты, гормонозависимые опухоли, щитовидная железа, печень, почки и др.) у каждого вещества отмечено: <b>противопоказано</b>, <b>с осторожностью</b> или <b>учесть</b>. Отмеченные состояния пациента выносятся в начало и определяют вердикт.</p>
+<h3>Мишени и метаболическая нагрузка</h3><p>Для каждого вещества указаны рецепторы, ферменты-мишени, пути метаболизма и выведения, а также ферменты, которые вещество тормозит или ускоряет (DrugBank, Natural Medicines, обзоры по фармакокинетике; данные in vitro помечены). Нагрузка на фермент считается по числу веществ состава, которые через него выводятся (основной путь — 1, минорный — 0,5): 1 — низкая, 2 — умеренная, 3 и более — высокая. Если в составе есть ингибитор этого фермента, нагрузка повышается на ступень. Для высокоёмких путей (глюкуронидация, сульфатирование, почки) нагрузка не выше умеренной; при отмеченной ХБП нагрузка на почки повышается. Ферменты, которые состав тормозит или ускоряет без собственных субстратов, показаны отдельно — это важно для других препаратов пациента. Общие мишени — рецепторы и ферменты, на которые действуют два и более вещества.</p>
 <h3>Схема приёма</h3><p>Время суток и связь с едой — по фармакологии (стимуляторы утром, седативные вечером, жирорастворимые с едой). Конфликтующие пары разносятся по разным приёмам (раскраска графа конфликтов).</p>
 <h3>Ограничения</h3><ul><li>Справочная оценка по базе из 221 активного вещества; не учитываются дозы, индивидуальные особенности и полный список принимаемых препаратов.</li><li>Перечень противопоказаний не исчерпывающий — для рецептурных препаратов действует инструкция.</li><li>Решение о назначении принимает врач.</li></ul>
 <h3>Источники</h3><ul><li>Natural Medicines Comprehensive Database; Stockley's Drug Interactions; Stockley's Herbal Medicines Interactions.</li><li>Инструкции по медицинскому применению рецептурных препаратов.</li><li>Обзорные публикации по отдельным сочетаниям (Shoba 1998 — пиперин и куркумин; Sekhar 2021 — GlyNAC и др.).</li></ul>`;
 }
 
+function pkReport(r) {
+  if (!r || !r.ids.length) return '';
+  const L = pkLoad(r.ids); const rows = L.rows.filter(x => x.sub.length && x.lvl >= 2);
+  if (!rows.length && !L.shared.length) return '';
+  const out = ['', 'Метаболическая нагрузка:'];
+  rows.forEach(x => out.push(`  ${x.n} — ${LOAD_N[x.lvl].t.toLowerCase()}: ${x.sub.map(s => sn(s.id)).join(', ')}${x.inh.length ? '; тормозят: ' + x.inh.map(s => sn(s.id)).join(', ') : ''}${x.ind.length ? '; ускоряют: ' + x.ind.map(s => sn(s.id)).join(', ') : ''}`));
+  if (L.shared.length) out.push('  Общие мишени: ' + L.shared.map(t => `${t.k} (${t.ids.map(sn).join(', ')})`).join('; '));
+  return '\n' + out.join('\n');
+}
 function formsReport(F) {
   if (!F) return '';
   const L = ['', 'Формы доставки' + (F.typical ? ' (где доза не указана — по типичной)' : '') + ':'];
@@ -2713,7 +3053,7 @@ function init() {
     const a = e.target.closest('[data-addmol]'); if (a) { addId(a.dataset.addmol); history.replaceState(null, '', location.pathname + location.search); route(); return; }
     const ad = e.target.closest('[data-add]'); if (ad) { addId(ad.dataset.add); return; }
     const m = e.target.closest('[data-mol]'); if (m) { location.hash = '#card/' + m.dataset.mol; return; }
-    if (e.target.closest('#copyBtn')) copyText(docReport(LAST) + formsReport(LASTF));
+    if (e.target.closest('#copyBtn')) copyText(docReport(LAST) + formsReport(LASTF) + pkReport(LAST));
   });
   document.addEventListener('mouseover', e => { const t = e.target.closest('[title].cpill'); if (t && t.title) { t.dataset.t = t.title; t.removeAttribute('title'); } const d = e.target.closest('[data-t]'); if (d) { tip.textContent = d.dataset.t; tip.hidden = false; } });
   document.addEventListener('mousemove', e => { if (tip.hidden) return; if (!e.target.closest('[data-t]')) { tip.hidden = true; return; } const w = tip.offsetWidth, hh = tip.offsetHeight; let x = e.clientX + 14, y = e.clientY + 14; if (x + w > innerWidth - 8) x = e.clientX - w - 14; if (y + hh > innerHeight - 8) y = e.clientY - hh - 14; tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; });

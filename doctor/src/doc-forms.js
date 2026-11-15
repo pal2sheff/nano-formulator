@@ -32,7 +32,7 @@ function bfForms(m) {
 }
 
 // короткое имя: без пояснений в скобках
-const sn = id => (BY[id] ? BY[id].ru : id).replace(/\s*\([^)]*\)/g, '').trim();
+const sn = id => (BY[id] ? BY[id].ru : id).replace(/\s*\([^)]*\)/g, '').replace(/\s*\/.*$/, '').trim();
 
 /* ---------- Путь введения: для каких веществ имеют смысл непероральные формы ---------- */
 const ROUTE_OF = { caps: 'oral', powder: 'oral', drops: 'oral', hydro: 'oral', oildr: 'oral', slspray: 'oral', troche: 'oral', gummy: 'oral', nasal: 'nasal', cream: 'topical', gel: 'topical', oint: 'topical', td: 'td', supp: 'rectal', vag: 'vaginal' };
