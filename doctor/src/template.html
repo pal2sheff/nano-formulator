@@ -25,16 +25,24 @@
 
 <main>
   <section id="tab-recipe">
+    <div class="card ctor">
+      <div class="card-h"><h2>Индивидуальный заказ</h2><label class="unlim"><input type="checkbox" id="unlim"> Снять ограничение на максимальную дозу</label></div>
+      <div class="ftiles" id="ftiles"></div>
+      <div class="search ctor-search">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="5"/><path d="m11 11 3.5 3.5"/></svg>
+        <input id="q" type="search" placeholder="Поиск по всем видам терапии, категориям и молекулам" autocomplete="off" aria-label="Поиск молекулы">
+      </div>
+      <div class="cols">
+        <div class="col"><div class="colh">1. Вид терапии</div><div class="clist" id="colTh"></div></div>
+        <div class="col"><div class="colh">2. Категория</div><div class="clist" id="colCat"></div></div>
+        <div class="col col-mol"><div class="colh" id="colMolH">3. Молекула</div><div class="clist" id="colMol"></div></div>
+      </div>
+      <div class="legend mlegend"><span><i class="dot syn"></i>синергия с выбранными</span><span><i class="dot warn"></i>осторожно</span><span><i class="dot bad"></i>конфликт</span><span class="muted">наведите или нажмите на отметку — причина</span></div>
+    </div>
     <div class="layout">
       <aside class="col-in">
         <div class="card">
-          <div class="card-h"><h2>Состав</h2><button class="linkbtn" id="clearBtn" type="button" hidden>Очистить</button></div>
-          <div class="search">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="5"/><path d="m11 11 3.5 3.5"/></svg>
-            <input id="q" type="search" placeholder="Выберите из списка или введите 3 буквы" autocomplete="off" aria-label="Выбор вещества">
-            <button type="button" class="dd-toggle" aria-label="Открыть список веществ" aria-expanded="false">Список<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 6 4 4 4-4"/></svg></button>
-            <div class="dd" id="dd" hidden></div>
-          </div>
+          <div class="card-h"><h2>Расчёт молекул</h2><button class="linkbtn" id="clearBtn" type="button" hidden>Очистить</button></div>
           <div class="items" id="items"></div>
         </div>
         <details class="card pbox" id="condBox">

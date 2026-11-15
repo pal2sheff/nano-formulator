@@ -1,9 +1,8 @@
-// Проверка врачебной версии в Chromium: node test/browser.js [папка для скриншотов]
+// Проверка врачебной версии (конструктор как на сайте) в Chromium: node test/browser.js [папка для скриншотов]
 const { chromium } = require('playwright');
 const path = require('path');
 const out = process.argv[2] || null;
-const URL = 'file://' + path.join(__dirname, '..', 'index.html');
-const SETS = [['nmn', 'tmg', 'resv', 'coq10'], ['синеф', 'мелат'], ['metformin', 'berberine', 'mecbl'], ['tongkat', 'цинка пик']];
+const URL = 'file://' + path.join(__dirname, '..', process.env.PAGE || 'index.html');
 (async () => {
   const b = await chromium.launch(); const errs = [];
   for (const [tag, opts] of [['desktop', { viewport: { width: 1400, height: 900 } }], ['mobile', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }]]) {
@@ -11,23 +10,41 @@ const SETS = [['nmn', 'tmg', 'resv', 'coq10'], ['синеф', 'мелат'], ['m
     p.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errs.push(`[${tag}] ${m.text()}`); });
     p.on('pageerror', e => errs.push(`[${tag}] ${e.message}`));
     await p.goto(URL); await p.evaluate(() => localStorage.clear()); await p.reload();
-    for (const [si, set] of SETS.entries()) {
-      if (await p.isVisible('#clearBtn')) await p.click('#clearBtn');
-      for (const q of set) { await p.fill('#q', q); await p.keyboard.press('Enter'); }
-      await p.click('h2');
-      const syn = await p.$$eval('.syn-list .fnd', x => x.length), sug = await p.$$eval('[data-add]', x => x.length);
-      if (tag === 'desktop') console.log(set.join('+'), '→', await p.textContent('.verdict .big'), '| синергий:', syn, '| подсказок:', sug);
-      if (out && si === 0) await p.screenshot({ path: `${out}/doc2-${tag}.png`, fullPage: true });
+    // форма → вид терапии → категория → молекулы
+    await p.click('[data-form="СЛ"]');
+    const ths = await p.$$eval('#colTh .cbtn', x => x.map(e => e.textContent));
+    await p.click('#colTh .cbtn >> text=Витамино-минеральная терапия');
+    await p.click('#colCat .cbtn >> text=Минералы и микроэлементы');
+    await p.click('#colMol [data-sn="Меди бисглицинат"]');
+    // поиск по синониму и отметки до добавления
+    await p.fill('#q', 'ацетилцист');
+    const st = await p.$eval('#colMol [data-sn="N-Ацетилцистеин"] .mst', e => e.className + ' ' + e.textContent).catch(() => 'нет отметки');
+    await p.click('#colMol [data-sn="N-Ацетилцистеин"]');
+    await p.fill('#q', 'глицин');
+    const st2 = await p.$eval('#colMol [data-sn="Глицин"] .mst', e => e.textContent).catch(() => 'нет отметки');
+    await p.fill('#q', '');
+    const v = await p.textContent('.verdict .big');
+    const cards = await p.$$eval('#items .dcard', x => x.length);
+    // доза ползунком
+    const zone0 = await p.textContent('#items .dcard .zone');
+    await p.$eval('#items [data-amtn="1"]', e => { e.value = 1800; e.dispatchEvent(new Event('input', { bubbles: true })); });
+    await p.waitForTimeout(400);
+    const zone1 = await p.$$eval('#items .dcard .zone', x => x.map(e => e.textContent));
+    if (tag === 'desktop') {
+      console.log('видов терапии в СЛ:', ths.length, '| NAC при выбранной меди:', st, '| глицин:', st2);
+      console.log('вердикт:', v, '| карточек доз:', cards, '| зоны:', zone0, '→', zone1.join(', '));
     }
-    // добавить из подсказки
-    const n0 = await p.$$eval('#items .ditem', x => x.length);
-    const add = await p.$('[data-add]'); if (add) { await add.click(); if ((await p.$$eval('#items .ditem', x => x.length)) !== n0 + 1) errs.push(`[${tag}] подсказка не добавила вещество`); }
-    // пациент
-    if (!(await p.isVisible('[data-cond="diab"]'))) await p.click('#condBox summary');
-    await p.click('[data-cond="diab"]');
+    if (out) await p.screenshot({ path: `${out}/ctor-${tag}.png`, fullPage: true });
+    // смена формы, пациент, копирование, карточка
+    await p.click('[data-form="КП"]');
+    if (!(await p.isVisible('[data-cond="preg"]'))) await p.click('#condBox summary');
+    await p.click('[data-cond="preg"]');
     await p.click('#copyBtn');
-    await p.click('#items [data-mol]'); await p.waitForSelector('#mol .card');
-    if (out) await p.screenshot({ path: `${out}/doc2-${tag}-card.png`, fullPage: true });
+    await p.click('#items .dcard .mlink');
+    await p.waitForSelector('#mol .card');
+    const site = await p.$$eval('#mol h2', x => x.map(e => e.textContent).filter(t => /конструкторе/.test(t)));
+    if (tag === 'desktop') console.log('карточка:', site.join(' | '));
+    if (out) await p.screenshot({ path: `${out}/ctor-${tag}-card.png`, fullPage: true });
     await p.goto(URL + '#method');
     const sw = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     if (sw > 0) errs.push(`[${tag}] горизонтальная прокрутка ${sw}px`);
