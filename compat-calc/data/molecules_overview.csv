@@ -1,0 +1,261 @@
+﻿id;Название;English;Категория;Тип;Формула;М, г/моль;logP эксп.;cLogP;TPSA;Растворимость в воде, мг/мл;pH 1%;Окно pH;Устойчивость;Теги
+nad;НАД+;NAD+;Коферменты и НАД;small;C21H27N7O14P2;663.43;-5.0;-3.65;321.1;500;2.99;2.0–6.0;ox1 hy2 he2 li1 mo2;phos_org baselabile hygro nadprec
+nadh;НАДН (динатриевая соль);NADH;Коферменты и НАД;small;C21H27N7Na2O14P2;709.4;-5.0;-3.95;323.3;100;7.02;7.5–9.5;ox3 hy3 he2 li2 mo3;phos_org acidlabile reducing hygro nadprec
+nadp;НАДФ (натриевая соль);NADP;Коферменты и НАД;small;C21H27N7NaO17P3;765.4;-5.5;-3.53;367.6;50;3.01;2.5–6.5;ox1 hy2 he2 li1 mo2;phos_org baselabile hygro nadprec
+nmn;НМН (β-никотинамидмононуклеотид);Nicotinamide mononucleotide;Коферменты и НАД;small;C11H15N2O8P;334.22;-4.1;-2.83;166.2;500;3.91;3.0–6.5;ox1 hy2 he2 li1 mo2;phos_org baselabile hygro nadprec
+nmnh;НМНН (восстановленный НМН);NMNH;Коферменты и НАД;small;C11H15N2Na2O8P;380.2;-4.0;-3.13;168.4;300;9.1;7.5–9.5;ox3 hy3 he2 li2 mo3;phos_org acidlabile reducing hygro nadprec
+nr;Никотинамид рибозид хлорид;Nicotinamide riboside chloride;Коферменты и НАД;small;C11H15ClN2O5;290.7;-3.6;-2.32;116.9;500;7.0;2.5–5.5;ox1 hy3 he2 li1 mo3;baselabile hygro nadprec cationic
+nam;Никотинамид (витамин B3);Nicotinamide;Коферменты и НАД;small;C6H6N2O;122.13;-0.37;0.18;56.0;1000;7.2;3.0–7.5;ox0 hy1 he0 li0 mo1;nadprec sirtinh methylcons
+niacin;Никотиновая кислота (ниацин);Niacin;Витамины;small;C6H5NO2;123.11;0.36;0.78;50.2;18;3.43;2.0–8.0;ox0 hy0 he0 li0 mo0;nadprec vasodil hepatox
+amp;АМФ (аденозинмонофосфат);Adenosine monophosphate;Коферменты и НАД;small;C10H14N5O7P;347.22;-3.5;-1.86;186.1;10;2.73;3.0–8.0;ox0 hy1 he1 li0 mo1;phos_org
+ump;Уридинмонофосфат (динатриевая соль);Uridine monophosphate;Сон, стресс и нейро;small;C9H11N2Na2O9P;368.1;-4.0;-4.0;177.0;300;7.95;4.0–8.5;ox0 hy1 he1 li0 mo1;phos_org
+uridine;Уридин;Uridine;Сон, стресс и нейро;small;C9H12N2O6;244.2;-1.98;-2.85;124.8;500;5.29;3.0–8.0;ox0 hy0 he0 li0 mo1;
+coq10;Коэнзим Q10 (убихинон);Coenzyme Q10;Коферменты и НАД;small;C59H90O4;863.36;10.0;17.85;52.6;0.0001;;3.0–8.0;ox1 hy0 he1 li3 mo0;lipo lowmp warfantag
+pqq;ПХХ (пирролохинолинхинон динатриевая соль);Pyrroloquinoline quinone;Коферменты и НАД;small;C14H4N2Na2O8;374.2;-0.5;0.55;174.7;3;2.39;3.0–7.0;ox1 hy0 he1 li2 mo1;quinone oxidant chelator aminereact
+agpc;Альфа-ГФХ (альфа-глицерилфосфорилхолин);Alpha-GPC;Сон, стресс и нейро;small;C8H20NO6P;257.22;-3.0;-1.45;99.1;1000;5.74;4.0–8.0;ox0 hy1 he0 li0 mo3;deliq hygro chol
+citicoline;Цитиколин натрия;Citicoline;Сон, стресс и нейро;small;C14H25N4NaO11P2;510.3;-5.0;-2.86;218.6;500;7.59;4.0–8.0;ox0 hy1 he1 li0 mo2;phos_org hygro chol
+akg;Альфа-кетоглутаровая кислота;Alpha-ketoglutarate;Коферменты и НАД;small;C5H6O5;146.1;-1.3;-0.5;91.7;541;1.62;1.5–7.0;ox1 hy0 he1 li0 mo1;acidic keto
+trehalose;Трегалоза;Trehalose;Коферменты и НАД;small;C12H22O11·2H2O;378.3;-4.2;-5.4;189.5;689;;3.0–9.0;ox0 hy0 he0 li0 mo0;stabilizer
+gsh;L-Глутатион восстановленный;L-Glutathione;Антиоксиданты;small;C10H17N3O6S;307.33;-4.5;-2.21;158.8;100;2.92;2.5–5.0;ox3 hy1 he1 li0 mo2;thiol reducing chelator acidic oxprone
+sag;S-Ацетилглутатион;S-Acetyl glutathione;Антиоксиданты;small;C12H19N3O7S;349.37;-3.6;-1.86;175.9;5;2.93;3.0–6.0;ox1 hy2 he1 li0 mo1;thioester
+gsh_lipo;Глутатион липосомальный / нано;Liposomal glutathione;Антиоксиданты;formulation;C10H17N3O6S;307.33;-4.5;-2.21;158.8;100;2.92;4.0–7.0;ox2 hy1 he2 li0 mo1;thiol reducing liposome oxprone
+nac;N-Ацетилцистеин;N-Acetylcysteine;Антиоксиданты;small;C5H9NO3S;163.2;-0.66;-0.49;66.4;100;2.25;2.0–4.5;ox3 hy1 he1 li1 mo2;thiol reducing chelator acidic oxprone sulfurodor
+ergo;L-Эрготионеин;L-Ergothioneine;Антиоксиданты;small;C9H15N3O2S;229.3;-3.0;-0.56;71.7;200;5.94;2.0–9.0;ox0 hy0 he0 li0 mo1;
+ala;Альфа-липоевая кислота (R/S);Alpha-lipoic acid;Антиоксиданты;small;C8H14O2S2;206.33;2.1;2.79;37.3;0.24;3.85;3.0–8.0;ox1 hy0 he3 li3 mo1;disulfide chelator lowmp hypogly sulfurodor
+astax;Астаксантин;Astaxanthin;Антиоксиданты;small;C40H52O4;596.85;10.0;8.91;74.6;1e-05;;4.0–8.0;ox3 hy0 he2 li3 mo0;lipo carotenoid oxprone
+lutein;Лютеин;Lutein;Антиоксиданты;small;C40H56O2;568.89;9.0;10.4;40.5;1e-05;;4.0–8.0;ox3 hy0 he2 li3 mo0;lipo carotenoid oxprone
+lycopene;Ликопин;Lycopene;Антиоксиданты;small;C40H56;536.89;15.0;12.94;0.0;1e-06;;4.0–8.0;ox3 hy0 he2 li3 mo0;lipo carotenoid oxprone
+fucox;Фукоксантин;Fucoxanthin;Метаболизм и вес;small;C42H58O6;658.9;7.0;;;0.0001;;4.0–7.5;ox3 hy2 he2 li3 mo0;lipo carotenoid oxprone
+htyr;Гидрокситирозол;Hydroxytyrosol;Антиоксиданты;small;C8H10O3;154.16;0.08;0.63;60.7;50;5.25;2.5–6.0;ox2 hy0 he1 li1 mo1;catechol polyphenol chelator oxprone
+ferulic;Феруловая кислота;Ferulic acid;Антиоксиданты;small;C10H10O4;194.19;1.51;1.5;66.8;0.78;3.51;3.0–5.5;ox1 hy0 he1 li2 mo0;polyphenol
+c60;Фуллерен C60;Fullerene C60;Антиоксиданты;small;C60;720.6;6.7;;;0.0;;1.0–14.0;ox1 hy0 he0 li3 mo0;lipo photosens
+quercetin;Кверцетин;Quercetin;Антиоксиданты;small;C15H10O7;302.24;1.82;1.99;131.4;0.06;5.3;3.0–6.5;ox2 hy0 he1 li2 mo0;catechol flavonoid polyphenol chelator cyp3a4inh senolytic oxprone
+fisetin;Физетин;Fisetin;Антиоксиданты;small;C15H10O6;286.24;2.0;2.28;111.1;0.01;5.59;3.0–6.5;ox2 hy0 he1 li2 mo0;catechol flavonoid polyphenol chelator senolytic oxprone
+egcg;ЭГКГ (эпигаллокатехин-3-галлат);EGCG;Антиоксиданты;small;C22H18O11;458.38;1.2;2.23;197.4;50;4.63;3.0–5.5;ox3 hy1 he2 li1 mo1;catechol pyrogallol tannin polyphenol chelator baselabile protprecip feabsinh hepatox oxprone
+dhq;Дигидрокверцетин (таксифолин);Dihydroquercetin;Антиоксиданты;small;C15H12O7;304.25;0.95;1.19;127.5;1.2;4.75;3.0–6.5;ox2 hy0 he1 li1 mo0;catechol flavonoid polyphenol chelator oxprone
+curcumin;Куркумин 95%;Curcumin;Антиоксиданты;small;C21H20O6;368.39;3.29;3.37;93.1;0.0006;5.66;2.0–6.5;ox2 hy3 he1 li3 mo0;lipo baselabile chelator antiplatelet michael cyp3a4inh stain
+curc_mic;Куркумин мицеллярный;Micellar curcumin;Антиоксиданты;formulation;C21H20O6;368.39;3.29;3.37;93.1;10;;3.0–6.5;ox2 hy2 he1 li3 mo0;surfactant antiplatelet chelator
+thc;Тетрагидрокуркумин;Tetrahydrocurcumin;Антиоксиданты;small;C21H24O6;372.42;2.9;3.21;93.1;0.01;5.65;3.0–7.5;ox1 hy1 he0 li1 mo0;lipo
+phycocyanin;Фикоцианин;Phycocyanin;Антиоксиданты;protein;;232000;-5.0;;;50;;5.0–7.0;ox1 hy1 he3 li3 mo1;protein
+spirulina;Спирулина;Spirulina;Растительные экстракты;extract;;;;;;;;5.0–8.0;ox2 hy1 he2 li2 mo2;protein Fe fibre
+pycno;Пикногенол / экстракт коры сосны;Pycnogenol;Растительные экстракты;extract;;;;;;10;;3.0–6.5;ox2 hy1 he1 li1 mo1;tannin polyphenol chelator protprecip feabsinh antiplatelet
+grapeseed;Экстракт виноградных косточек (OPC);Grape seed extract;Растительные экстракты;extract;;;;;;50;;3.0–6.5;ox2 hy1 he1 li1 mo1;tannin polyphenol chelator protprecip feabsinh antiplatelet
+pterost;Птеростильбен;Pterostilbene;Антиоксиданты;small;C16H16O3;256.3;3.7;3.58;38.7;0.021;5.66;2.0–8.0;ox1 hy0 he0 li2 mo0;lipo stilbene
+resv;Ресвератрол (trans);Resveratrol;Антиоксиданты;small;C14H12O3;228.25;3.1;2.97;60.7;0.03;5.65;1.0–7.0;ox1 hy0 he1 li3 mo0;stilbene polyphenol antiplatelet cyp3a4inh baselabile
+polygonum;Экстракт горца (Polygonum);Polygonum extract;Растительные экстракты;extract;;;;;;0.05;;1.0–7.0;ox1 hy0 he1 li3 mo0;stilbene polyphenol antiplatelet cyp3a4inh
+ursolic;Урсоловая кислота;Ursolic acid;Мембраны и печень;small;C30H48O3;456.71;7.3;7.09;57.5;2e-05;5.65;2.0–9.0;ox0 hy0 he0 li0 mo0;lipo
+oleanolic;Олеаноловая кислота;Oleanolic acid;Мембраны и печень;small;C30H48O3;456.71;7.0;7.23;57.5;2e-05;5.65;2.0–9.0;ox0 hy0 he0 li0 mo0;lipo
+silymarin;Силимарин (силибинин);Silymarin;Мембраны и печень;small;C25H22O10;482.44;2.4;2.36;155.1;0.04;5.3;2.0–7.0;ox1 hy1 he1 li1 mo0;flavonoid polyphenol cyp3a4inh
+phospholip;Эссенциальные фосфолипиды / фосфатидилхолин;Phosphatidylcholine;Мембраны и печень;small;C42H82NO8P;760.09;10.0;11.17;111.2;0.0;;5.0–7.5;ox2 hy2 he1 li1 mo1;lipid surfactant emulsifier oxprone
+mgcit;Магния цитрат (безводный);Magnesium citrate;Минералы;mineral;C12H10Mg3O14;451.11;;;;20;9.43;3.0–9.0;ox0 hy0 he0 li0 mo1;Mg polyval electrolyte chelator laxative
+mgorot;Магния оротат (дигидрат);Magnesium orotate;Минералы;mineral;C10H6MgN4O8·2H2O;370.5;;;;0.5;5.68;3.0–9.0;ox0 hy0 he0 li0 mo0;Mg polyval
+mgbis;Магния бисглицинат;Magnesium bisglycinate;Минералы;mineral;C4H8MgN2O4;172.42;;;;30;11.33;4.0–10.0;ox0 hy0 he0 li0 mo1;Mg polyval electrolyte amine1 basic
+mgtaur;Магния тауринат;Magnesium taurate;Минералы;mineral;C4H12MgN2O6S2;272.59;;;;50;10.95;4.0–10.0;ox0 hy0 he0 li0 mo0;Mg polyval electrolyte basic
+cacit;Кальция цитрат (тетрагидрат);Calcium citrate;Минералы;mineral;C12H10Ca3O14·4H2O;570.5;;;;0.95;8.67;3.0–9.0;ox0 hy0 he0 li0 mo0;Ca polyval chelator
+camal;Кальция малат;Calcium malate;Минералы;mineral;C4H4CaO5;172.15;;;;5;8.46;3.0–9.0;ox0 hy0 he0 li0 mo0;Ca polyval
+cagluc;Кальция D-глюкарат;Calcium D-glucarate;Мембраны и печень;mineral;C6H8CaO8·4H2O;320.3;;;;0.5;6.35;3.0–8.0;ox0 hy1 he0 li0 mo0;Ca polyval
+cabhb;Кальция бета-гидроксибутират;Calcium BHB;Метаболизм и вес;mineral;C8H14CaO6;246.27;;;;300;8.42;4.0–9.0;ox0 hy0 he0 li0 mo2;Ca polyval electrolyte hygro basic
+znbis;Цинка бисглицинат;Zinc bisglycinate;Минералы;mineral;C4H8N2O4Zn;213.51;;;;20;9.73;4.0–9.0;ox0 hy0 he0 li0 mo0;Zn polyval electrolyte amine1
+znpic;Цинка пиколинат;Zinc picolinate;Минералы;mineral;C12H8N2O4Zn;309.6;;;;5;7.27;3.0–9.0;ox0 hy0 he0 li0 mo0;Zn polyval
+zngluc;Цинка глюконат;Zinc gluconate;Минералы;mineral;C12H22O14Zn;455.68;;;;100;6.56;3.0–8.0;ox0 hy0 he0 li0 mo1;Zn polyval electrolyte
+cubis;Меди бисглицинат;Copper bisglycinate;Минералы;mineral;C4H8CuN2O4;211.66;;;;5;9.6;4.0–9.0;ox0 hy0 he0 li0 mo0;Cu polyval redoxmetal oxidant
+fefum;Железа (II) фумарат;Iron fumarate;Минералы;mineral;C4H2FeO4;169.9;;;;1.4;6.88;2.0–6.0;ox2 hy0 he0 li0 mo1;Fe polyval redoxmetal oxidant colored
+crpic;Хрома пиколинат;Chromium picolinate;Минералы;mineral;C18H12CrN3O6;418.31;;;;0.6;7.76;3.0–9.0;ox0 hy0 he0 li0 mo0;Cr polyval hypogly colored
+semet;L-Селенометионин;Selenium methionine;Минералы;mineral;C5H11NO2Se;196.11;;;;30;5.7;3.0–8.0;ox2 hy0 he0 li1 mo0;Se amine1
+segly;Селена глицинат (хелат);Selenium glycinate;Минералы;mineral;;;;;;10;;3.0–8.0;ox1 hy0 he0 li0 mo0;Se
+ki;Калия йодид;Potassium iodide;Минералы;mineral;IK;166.0;;;;1400;7.0;6.0–10.0;ox2 hy0 he0 li2 mo2;iodide K electrolyte thyroid
+boron;Бора глицинат;Boron glycinate;Минералы;mineral;;;;;;50;;4.0–9.0;ox0 hy0 he0 li0 mo1;B
+thiamine;Тиамина гидрохлорид (B1);Thiamine hydrochloride;Витамины;small;C12H17ClN4OS·HCl;337.3;-2.1;0.61;75.9;1000;3.17;2.0–4.5;ox2 hy2 he2 li1 mo2;baselabile cationic acidic hygro sulfurodor
+benfo;Бенфотиамин (B1);Benfotiamine;Витамины;small;C19H23N4O6PS;466.46;1.2;2.63;155.9;0.1;4.29;3.0–7.0;ox1 hy1 he1 li1 mo1;
+pantoth;Кальция D-пантотенат (B5);Vitamin B5;Витамины;mineral;C18H32CaN2O10;476.54;;;;356;7.9;5.0–7.0;ox0 hy2 he2 li0 mo2;Ca hygro
+pyridox;Пиридоксина гидрохлорид (B6);Vitamin B6;Витамины;small;C8H11NO3·HCl;205.6;-0.77;0.08;73.6;220;3.16;2.0–6.0;ox1 hy0 he0 li2 mo0;b6 acidic
+p5p;Пиридоксаль-5-фосфат (P5P);Pyridoxal 5-phosphate;Витамины;small;C8H10NO6P;247.14;-1.6;0.52;117.0;10;3.03;3.0–7.0;ox1 hy1 he1 li3 mo1;b6 aldehyde acidic
+biotin;Биотин (B7);Biotin;Витамины;small;C10H16N2O3S;244.32;0.39;0.8;78.4;0.22;3.92;4.0–9.0;ox1 hy0 he0 li0 mo0;labinterf
+mthf;L-5-Метилтетрагидрофолат кальция (B9);L-5-methylfolate;Витамины;small;C20H23CaN7O6;497.5;-2.5;-0.26;202.8;1;7.22;6.0–8.5;ox3 hy1 he2 li3 mo1;reducing methyldon oxprone
+folic;Фолиевая кислота;Folic acid;Витамины;small;C19H19N7O6;441.4;-2.5;-0.04;213.3;0.0016;5.18;5.0–9.0;ox1 hy1 he1 li3 mo0;
+mecbl;Метилкобаламин (B12);Methylcobalamin;Витамины;small;C63H91CoN13O14P;1344.4;-2.0;;;10;;4.0–7.0;ox1 hy1 he1 li3 mo1;b12 colored
+cncbl;Цианокобаламин (B12);Cyanocobalamin;Витамины;small;C63H88CoN14O14P;1355.4;-2.0;;;12.5;;4.0–6.5;ox0 hy1 he0 li2 mo0;b12 colored
+vitc;Витамин C (аскорбиновая кислота);Vitamin C;Витамины;small;C6H8O6;176.12;-1.85;-1.41;107.2;330;2.72;2.5–5.0;ox3 hy1 he2 li2 mo2;vitc reducing acidic oxprone browning
+vitc_lipo;Витамин C липосомальный;Liposomal vitamin C;Витамины;formulation;C6H8O6;176.12;-1.85;-1.41;107.2;330;7.64;4.0–7.0;ox2 hy1 he2 li2 mo1;vitc reducing liposome
+vitd3;Витамин D3 (холекальциферол);Vitamin D3;Витамины;small;C27H44O;384.65;7.5;7.62;20.2;1e-05;;5.0–9.0;ox2 hy0 he2 li3 mo1;lipo fatvit iu_d
+vite;Витамин E (d-α-токоферол);Vitamin E;Витамины;small;C29H50O2;430.72;12.2;8.84;29.5;0.0;;3.0–8.0;ox2 hy0 he1 li2 mo0;lipo fatvit antiplatelet antiox_lipid iu_e
+vitk2;Витамин K2 (менахинон-7);Vitamin K2;Витамины;small;C46H64O2;649.02;14.0;14.1;34.1;0.0;;4.0–8.0;ox1 hy0 he1 li3 mo0;lipo fatvit vitk lowmp
+retinol;Ретинол (витамин A);Retinol;Витамины;small;C20H30O;286.46;5.68;5.51;20.2;0.0;;5.0–8.0;ox3 hy0 he2 li3 mo0;lipo fatvit oxprone lowmp teratogen iu_a
+b14;Витамин B14;Vitamin B14;Витамины;extract;;;;;;;;3.0–7.0;ox1 hy1 he1 li1 mo1;
+b15;Витамин B15 (пангамовая кислота / пангамат кальция);Vitamin B15;Витамины;small;C10H19NO8;281.26;;-3.38;147.8;100;5.75;3.0–6.5;ox0 hy2 he1 li0 mo1;methyldon
+inositol;Мио-инозитол;Inositol;Метаболизм и вес;small;C6H12O6;180.16;-2.1;-3.83;121.4;140;;2.0–10.0;ox0 hy0 he0 li0 mo0;hypogly_mild
+dci;D-хиро-инозитол;D-chiro-inositol;Метаболизм и вес;small;C6H12O6;180.16;-2.1;-3.83;121.4;500;;2.0–10.0;ox0 hy0 he0 li0 mo0;hypogly_mild
+arg;L-Аргинин (основание);L-Arginine;Аминокислоты и NO;small;C6H14N4O2;174.2;-4.2;-1.34;125.2;148;10.66;3.0–11.0;ox0 hy0 he0 li0 mo1;no basic amine1 hypotens lnaa
+cit;L-Цитруллин;L-Citrulline;Аминокислоты и NO;small;C6H13N3O3;175.19;-3.2;-1.15;118.4;200;5.9;3.0–9.0;ox0 hy0 he0 li0 mo0;no amine1 hypotens
+citmal;L-Цитруллина малат (1:1);L-Citrulline malate;Аминокислоты и NO;small;C6H13N3O3·C4H6O5;309.3;-3.2;-1.15;118.4;200;2.95;2.0–9.0;ox0 hy0 he0 li0 mo3;no amine1 hypotens acidic hygro deliq
+lys;L-Лизина гидрохлорид;L-Lysine hydrochloride;Аминокислоты и NO;small;C6H14N2O2·HCl;182.65;-3.05;-0.47;89.3;650;5.61;3.0–9.0;ox0 hy0 he0 li0 mo1;amine1 maillard_strong
+orn;L-Орнитина гидрохлорид;L-Ornithine hydrochloride;Аминокислоты и NO;small;C5H12N2O2·HCl;168.6;-4.2;-0.86;89.3;543;5.32;3.0–9.0;ox0 hy0 he0 li0 mo1;amine1 maillard_strong
+asp;L-Аспарагиновая кислота;L-Aspartic acid;Аминокислоты и NO;small;C4H7NO4;133.1;-3.89;-1.13;100.6;4.5;3.01;2.0–9.0;ox0 hy0 he0 li0 mo0;amine1 acidic
+daa;D-Аспарагиновая кислота;D-Aspartic acid;Гормоны: бустеры;small;C4H7NO4;133.1;-3.89;-1.13;100.6;4.5;3.01;2.0–9.0;ox0 hy0 he0 li0 mo0;amine1 acidic hpgboost
+tyr;L-Тирозин;L-Tyrosine;Сон, стресс и нейро;small;C9H11NO3;181.19;-2.26;0.35;83.6;0.45;5.66;2.0–9.0;ox1 hy0 he0 li0 mo0;amine1 lnaa dopaprec stimulant_mild
+taurine;Таурин;Taurine;Аминокислоты и NO;small;C2H7NO3S;125.15;-3.36;-1.17;80.4;105;5.34;2.0–10.0;ox0 hy0 he0 li0 mo0;amine1 hypotens_mild
+gaba;ГАМК (гамма-аминомасляная кислота);GABA;Сон, стресс и нейро;small;C4H9NO2;103.12;-3.17;-0.19;63.3;1300;7.25;3.0–9.0;ox0 hy0 he0 li0 mo1;amine1 sedative
+theanine;L-Теанин;L-Theanine;Сон, стресс и нейро;small;C7H14N2O3;174.2;-4.0;-0.69;92.4;260;5.81;3.0–8.0;ox0 hy1 he0 li0 mo0;amine1 sedative_mild
+htp;5-Гидрокситриптофан (5-HTP);5-Hydroxytryptophan;Сон, стресс и нейро;small;C11H12N2O3;220.23;-1.4;0.83;99.3;10;5.73;2.5–6.0;ox2 hy0 he1 li2 mo0;amine1 serotonergic lnaa oxprone phenol
+lcar;L-Карнитин (основание);L-Carnitine;Аминокислоты и NO;small;C7H15NO3;161.2;-4.5;-1.81;60.4;2500;7.5;3.0–8.0;ox0 hy0 he0 li0 mo3;deliq hygro
+alcar;Ацетил-L-карнитина гидрохлорид;Acetyl-L-Carnitine;Сон, стресс и нейро;small;C9H18ClNO4;239.7;-4.0;0.1;63.6;1000;2.51;2.5–6.0;ox0 hy2 he1 li0 mo3;hygro acidic ester
+carnosine;L-Карнозин;L-Carnosine;Антиоксиданты;small;C9H14N4O3;226.24;-4.1;-1.13;121.1;320;8.17;4.0–8.0;ox0 hy1 he0 li0 mo1;amine1 chelator antiglyc
+betainehcl;Бетаина гидрохлорид;Betaine HCl;Ферменты, ЖКТ и микробиом;small;C5H12ClNO2;153.6;-4.9;-0.22;37.3;650;1.61;0.5–9.0;ox0 hy0 he0 li0 mo2;acidic_strong acidic hygro
+tmg;Бетаин безводный (TMG, триметилглицин);Betaine anhydrous;Метаболизм и вес;small;C5H11NO2;117.15;-4.9;-1.56;40.1;1600;6.14;2.0–10.0;ox0 hy0 he0 li0 mo2;methyldon hygro
+glycine;Глицин;Glycine;Аминокислоты и NO;small;C2H5NO2;75.07;-3.21;-0.97;63.3;250;5.95;2.0–10.0;ox0 hy0 he0 li0 mo0;amine1 sedative_mild
+spermidine;Спермидина тригидрохлорид;Spermidine;Метаболизм и вес;small;C7H19N3·3HCl;254.6;-1.0;-0.34;64.1;1000;4.82;3.0–8.0;ox1 hy0 he0 li0 mo3;amine1 hygro
+same;SAMe (S-аденозилметионин дисульфат тозилат);SAMe;Сон, стресс и нейро;small;C15H22N6O5S·2H2SO4·C7H8O3S (≈);766.8;-4.0;-1.92;182.6;500;7.0;1.5–3.5;ox1 hy3 he3 li1 mo3;serotonergic_mild methyldon hygro deliq acidic_strong
+glucosamine;Глюкозамина сульфат 2KCl;Glucosamine sulfate;Суставы и кожа;small;(C6H14NO5)2SO4·2KCl;605.5;-2.2;-3.25;116.2;500;4.53;3.0–6.0;ox0 hy0 he1 li0 mo2;amine1 redsugar maillard_strong hygro electrolyte acidic
+testo;Тестостерон;Testosterone;Гормоны;small;C19H28O2;288.43;3.32;3.88;37.3;0.023;;3.0–9.0;ox1 hy0 he0 li1 mo0;androgen hormone cyp3a4sub rx
+dhea;ДГЭА (дегидроэпиандростерон);DHEA;Гормоны;small;C19H28O2;288.43;3.23;3.88;37.3;0.064;;3.0–9.0;ox0 hy0 he0 li0 mo0;androgen estrogenprec hormone
+keto7;7-Кето-ДГЭА;7-Keto DHEA;Гормоны;small;C19H26O3;302.41;2.2;3.06;54.4;0.05;;3.0–9.0;ox0 hy0 he0 li1 mo0;thermogenic
+preg;Прегненолон;Pregnenolone;Гормоны;small;C21H32O2;316.49;4.22;4.52;37.3;0.007;;3.0–9.0;ox0 hy0 he0 li0 mo0;hormone
+prog;Прогестерон;Progesterone;Гормоны;small;C21H30O2;314.47;3.87;4.72;34.1;0.0088;;3.0–9.0;ox0 hy0 he0 li2 mo0;progestogen hormone sedative_mild cyp3a4sub rx
+e2;Эстрадиол;Estradiol;Гормоны;small;C18H24O2·½H2O;281.4;4.01;3.61;40.5;0.0036;5.66;3.0–9.0;ox1 hy0 he0 li1 mo0;estrogen hormone cyp3a4sub rx
+e3;Эстриол;Estriol;Гормоны;small;C18H24O3;288.39;2.45;2.58;60.7;0.027;5.66;3.0–9.0;ox1 hy0 he0 li1 mo0;estrogen hormone rx
+anastrozole;Анастрозол;Anastrozole;Фарма;small;C17H19N5;293.37;2.4;2.93;78.3;0.5;;2.0–9.0;ox0 hy0 he0 li0 mo0;ai antiestro rx cyp3a4sub
+metformin;Метформина гидрохлорид;Metformin;Фарма;small;C4H11N5·HCl;165.6;-1.43;-1.03;89.0;300;6.65;2.0–9.0;ox0 hy0 he0 li0 mo1;hypogly cationic rx b12depl amine1
+sitagliptin;Ситаглиптина фосфат моногидрат;Sitagliptin;Фарма;small;C16H15F6N5O·H3PO4·H2O;523.3;1.26;2.02;77.0;69.5;4.68;3.0–8.0;ox0 hy0 he0 li0 mo0;dpp4 hypogly rx phos_inorg amine1
+tadalafil;Тадалафил;Tadalafil;Фарма;small;C22H19N3O4;389.41;1.43;2.21;74.9;0.002;;2.0–10.0;ox0 hy0 he0 li0 mo0;pde5 hypotens rx cyp3a4sub
+semaglutide;Семаглутид;Semaglutide;Пептиды;peptide;C187H291N45O59;4113.6;;;;10;;7.0–8.5;ox1 hy2 he3 li1 mo2;peptide glp1 hypogly rx
+tirzepatide;Тирзепатид;Tirzepatide;Пептиды;peptide;C225H348N48O68;4813.5;;;;10;;6.5–8.0;ox1 hy2 he3 li1 mo2;peptide glp1 gip hypogly rx
+semax;Семакс (ацетат);Semax;Пептиды;peptide;C37H51N9O10S;813.93;;-1.22;286.3;100;;4.0–6.5;ox2 hy1 he2 li1 mo2;peptide nootrop
+selank;Селанк (ацетат);Selank;Пептиды;peptide;C33H57N11O9;751.89;;-3.77;319.7;100;;4.0–6.5;ox0 hy1 he2 li0 mo2;peptide sedative_mild
+dsip;ДСИП (дельта-сон-индуцирующий пептид);DSIP;Пептиды;peptide;C35H48N10O15;848.82;;-5.73;406.7;50;;4.0–6.5;ox2 hy2 he2 li2 mo2;peptide sedative
+epitalon;Эпиталон;Epithalon;Пептиды;peptide;C14H22N4O9;390.35;;-3.16;225.2;100;;4.0–7.0;ox0 hy2 he1 li0 mo2;peptide
+pt141;ПТ-141 (бремеланотид);PT-141;Пептиды;peptide;C50H68N14O10;1025.2;;;;10;;4.0–6.5;ox1 hy1 he2 li1 mo2;peptide hypertens_mild
+oxytocin;Окситоцин;Oxytocin;Пептиды;peptide;C43H66N12O12S2;1007.2;;;;100;;3.5–5.0;ox2 hy2 he3 li1 mo2;peptide rx
+motsc;MOTS-c;MOTS-c;Пептиды;peptide;C101H152N28O22S2;2174.64;;-2.68;839.4;20;;4.0–7.0;ox2 hy1 he2 li2 mo2;peptide
+ipamorelin;Ипаморелин;Ipamorelin;Пептиды;peptide;C38H49N9O5;711.9;;;;50;;4.0–7.0;ox0 hy1 he2 li0 mo2;peptide
+sod;Супероксиддисмутаза (SOD);Superoxide dismutase;Ферменты, ЖКТ и микробиом;enzyme;;;;;;50;;4.5–8.0;ox1 hy2 he3 li1 mo3;enzyme protein Cu Zn
+catalase;Каталаза;Catalase;Ферменты, ЖКТ и микробиом;enzyme;;;;;;50;;4.5–8.0;ox1 hy2 he3 li1 mo3;enzyme protein 
+gpx;Глутатионпероксидаза (GPx);Glutathione peroxidase;Ферменты, ЖКТ и микробиом;enzyme;;;;;;50;;4.5–8.0;ox1 hy2 he3 li1 mo3;enzyme protein Se
+bromelain;Бромелайн;Bromelain;Ферменты, ЖКТ и микробиом;enzyme;;;;;;50;;4.5–8.0;ox1 hy2 he3 li1 mo3;enzyme protein antiplatelet protease
+papain;Папаин / экстракт папайи;Papaya extract;Ферменты, ЖКТ и микробиом;enzyme;;;;;;50;;4.5–8.0;ox1 hy2 he3 li1 mo3;enzyme protein  protease
+nattokinase;Наттокиназа;Nattokinase;Ферменты, ЖКТ и микробиом;enzyme;;;;;;50;;4.5–8.0;ox1 hy2 he3 li1 mo3;enzyme protein fibrinolytic antiplatelet protease
+pancrelipase;Панкрелипаза;Pancrelipase;Ферменты, ЖКТ и микробиом;enzyme;;;;;;50;;4.5–8.0;ox1 hy2 he3 li1 mo3;enzyme protein  protease
+amylase;Амилаза;Amylase;Ферменты, ЖКТ и микробиом;enzyme;;;;;;50;;4.5–8.0;ox1 hy2 he3 li1 mo3;enzyme protein 
+lactase;Лактаза;Lactase;Ферменты, ЖКТ и микробиом;enzyme;;;;;;50;;4.5–8.0;ox1 hy2 he3 li1 mo3;enzyme protein 
+cellulase;Целлюлаза;Cellulase;Ферменты, ЖКТ и микробиом;enzyme;;;;;;50;;4.5–8.0;ox1 hy2 he3 li1 mo3;enzyme protein 
+maltdiast;Мальтдиастаза;Malt diastase;Ферменты, ЖКТ и микробиом;enzyme;;;;;;50;;4.5–8.0;ox1 hy2 he3 li1 mo3;enzyme protein 
+phytase;Фитаза;Phytase;Ферменты, ЖКТ и микробиом;enzyme;;;;;;50;;4.5–8.0;ox1 hy2 he3 li1 mo3;enzyme protein 
+akkermansia;Аккермансия (A. muciniphila);Akkermansia;Ферменты, ЖКТ и микробиом;probiotic;;;;;;;;5.5–8.0;ox3 hy2 he3 li1 mo3;probiotic
+inulin;Инулин;Inulin;Ферменты, ЖКТ и микробиом;polymer;;5000;;;;100;;4.0–8.0;ox0 hy2 he1 li0 mo2;fibre prebiotic hygro
+psyllium;Псиллиум;Psyllium;Ферменты, ЖКТ и микробиом;polymer;;;;;;;;2.0–10.0;ox0 hy0 he0 li0 mo3;fibre binder gelling
+betaglucan;Бета-глюкан дрожжевой;Beta-glucan;Растительные экстракты;polymer;;;;;;;;2.0–10.0;ox0 hy0 he0 li0 mo1;fibre immunostim
+flax;Экстракт семян льна;Flax seed extract;Растительные экстракты;extract;;;;;;;;3.0–8.0;ox2 hy1 he1 li1 mo2;fibre phytoestrogen_mild
+hyaluronate;Гиалуронат натрия;Sodium hyaluronate;Суставы и кожа;polymer;(C14H20NNaO11)n;401.3;;;;10;6.52;5.0–8.0;ox2 hy2 he2 li0 mo1;anionpoly gelling
+chondroitin;Хондроитина сульфат натрия;Chondroitin sulfate;Суставы и кожа;polymer;(C14H19NNa2O14S)n;503.3;;;;200;6.46;4.0–8.0;ox0 hy1 he1 li0 mo2;anionpoly antiplatelet_mild hygro
+pea;ПЭА (пальмитоилэтаноламид);Palmitoylethanolamide;Сон, стресс и нейро;small;C18H37NO2;299.5;6.2;4.58;49.3;0.0;;2.0–10.0;ox0 hy0 he0 li0 mo0;lipo
+dha;Омега-3 ДГК;DHA;Мембраны и печень;small;C22H32O2;328.5;6.8;6.55;37.3;0.0;;4.0–8.0;ox3 hy1 he2 li2 mo0;lipo antiplatelet pufa oxprone fishodor
+sterols;Растительные / древесные стеролы (β-ситостерин);Plant sterols;Мембраны и печень;small;C29H50O;414.72;9.3;8.02;20.2;0.0;;2.0–10.0;ox1 hy0 he0 li0 mo0;lipo fatvitblock
+oryzanol;Гамма-оризанол;Gamma-oryzanol;Гормоны: бустеры;extract;C40H58O4;602.9;10.0;;;0.0;;3.0–8.0;ox1 hy1 he0 li1 mo0;lipo
+berberine;Берберина хлорид;Berberine;Метаболизм и вес;small;C20H18ClNO4;371.8;-1.5;3.1;40.8;2.0;7.0;2.0–9.0;ox0 hy0 he0 li2 mo0;cationic photosens cyp3a4inh cyp2d6inh hypogly antimicrob alkaloid colored
+bittermelon;Момордика (горькая дыня);Bitter melon;Метаболизм и вес;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo2;hypogly
+gymnema;Гимнема лесная;Gymnema;Метаболизм и вес;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;hypogly sweetblock
+galega;Галега лекарственная;Galega;Метаболизм и вес;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;hypogly
+cinnamon;Корица (экстракт);Cinnamon extract;Метаболизм и вес;extract;C9H8O;132.16;1.9;1.9;17.1;1.1;;3.0–7.0;ox2 hy0 he1 li1 mo0;hypogly aldehyde electrophile antimicrob coumarin_cassia
+opuntia;Опунция;Opuntia;Метаболизм и вес;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo2;hypogly_mild fibre
+fig;Инжир (экстракт);Fig extract;Ферменты, ЖКТ и микробиом;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo2;fibre
+mangiferin;Мангиферин;Mangiferin;Метаболизм и вес;extract;C19H18O11;422.3;-0.65;;;0.1;;3.0–7.0;ox1 hy0 he1 li1 mo0;catechol polyphenol chelator hypogly_mild
+cga;Хлорогеновая кислота;Chlorogenic acid;Метаболизм и вес;small;C16H18O9;354.31;-0.42;-0.65;164.8;40;2.6;2.5–6.0;ox2 hy2 he1 li1 mo1;catechol polyphenol chelator feabsinh hypogly_mild acidic
+yerba;Йерба мате (кофеин);Yerba mate;Метаболизм и вес;extract;C8H10N4O2;194.19;-0.07;-1.03;61.8;21.6;;2.0–10.0;ox0 hy0 he0 li0 mo0;stimulant caffeine polyphenol feabsinh cyp1a2sub
+synephrine;Синефрин (p-синефрин);Synephrine;Метаболизм и вес;small;C9H13NO2;167.21;-0.6;0.65;52.5;50;10.02;2.0–8.0;ox1 hy0 he0 li1 mo0;stimulant sympath hypertens amine2 basic
+citrus;Цитрусовые биофлавоноиды (гесперидин, нарингин);Citrus bioflavonoids;Растительные экстракты;extract;;;;;;0.02;;3.0–7.0;ox1 hy1 he1 li1 mo0;flavonoid polyphenol cyp3a4inh_mild
+diosmin;Диосмин;Diosmin;Растительные экстракты;extract;C28H32O15;608.5;-0.4;;;0.02;;3.0–8.0;ox0 hy1 he0 li1 mo0;flavonoid
+pomegranate;Гранат (экстракт кожуры);Pomegranate extract;Растительные экстракты;extract;;;;;;;;3.0–6.5;ox2 hy1 he1 li1 mo1;tannin polyphenol chelator protprecip feabsinh cyp3a4inh_mild
+cherry;Вишня (экстракт);Cherry extract;Растительные экстракты;extract;;;;;;;;2.5–5.0;ox2 hy1 he2 li2 mo2;polyphenol anthocyanin
+roxpear;Груша Роксбурга (Rosa roxburghii);Roxburghii pear;Растительные экстракты;extract;;;;;;;;2.5–5.0;ox2 hy1 he2 li1 mo2;polyphenol vitc_source
+gardenia;Гардения (экстракт);Gardenia extract;Растительные экстракты;extract;;;;;;;;3.0–7.0;ox1 hy2 he1 li1 mo1;genipin aminereact colored
+fenugreek;Пажитник (экстракт семян);Fenugreek;Гормоны: бустеры;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo2;hypogly antiplatelet_mild hpgboost saponin fibre
+tongkat;Тонгкат али (Eurycoma longifolia);Tongkat ali;Гормоны: бустеры;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;hpgboost bitter
+fadogia;Фадогия агрестис;Fadogia agrestis;Гормоны: бустеры;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;hpgboost testtox
+tribulus;Трибулус;Tribulus;Гормоны: бустеры;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;hpgboost saponin
+mucuna;Мукуна жгучая (L-ДОФА 15–40%);Mucuna pruriens;Сон, стресс и нейро;extract;;;;;;;;2.0–4.5;ox3 hy0 he1 li2 mo1;dopaminergic ldopa catechol chelator lnaa oxprone
+safedmusli;Сафед мусли;Safed musli;Гормоны: бустеры;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;saponin
+damiana;Дамиана;Damiana;Гормоны: бустеры;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;ai_weak
+epimedium;Эпимедиум (горянка);Epimedium;Гормоны: бустеры;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;pde5_weak antiplatelet_mild
+sawpalm;Сереноа (пальма сабаль);Saw palmetto;Гормоны: бустеры;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;ari5 lipo
+pygeum;Африканская слива (Pygeum africanum);Prunus africana;Гормоны: бустеры;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;lipo
+pumpkin;Тыква (экстракт семян);Pumpkin seed extract;Гормоны: бустеры;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;lipo ari5_weak
+nettle;Крапива (экстракт корня);Nettle root extract;Гормоны: бустеры;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;shbg
+redclover;Клевер красный;Red clover;Гормоны: бустеры;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;phytoestrogen
+soy;Соя (изофлавоны);Soy extract;Гормоны: бустеры;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;phytoestrogen thyroid_tpo
+genistein;Генистеин;Genistein;Гормоны: бустеры;small;C15H10O5;270.24;3.04;2.58;90.9;0.0015;5.64;3.0–8.0;ox1 hy0 he0 li1 mo0;phytoestrogen flavonoid thyroid_tpo
+formononetin;Формононетин;Formononetin;Гормоны: бустеры;small;C16H12O4;268.27;2.7;3.17;59.7;0.005;5.59;3.0–8.0;ox0 hy0 he0 li1 mo0;phytoestrogen flavonoid
+hops;Хмель;Hops;Сон, стресс и нейро;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;sedative phytoestrogen bitter
+dim;ДИМ (3,3'-дииндолилметан);Diindolylmethane;Гормоны: бустеры;small;C17H14N2;246.31;4.2;4.24;31.6;0.0005;;2.0–8.0;ox2 hy0 he1 li2 mo0;lipo estromet cyp1a2ind oxprone
+i3c;Индол-3-карбинол;Indole-3-carbinol;Гормоны: бустеры;small;C9H9NO;147.18;1.1;1.66;36.0;1.0;;6.0–9.0;ox2 hy2 he2 li2 mo1;acidlabile estromet cyp1a2ind
+chrysin;Хризин;Chrysin;Гормоны: бустеры;small;C15H10O4;254.24;3.52;2.87;70.7;0.005;5.53;2.0–8.0;ox0 hy0 he0 li1 mo0;flavonoid ai_weak
+apigenin;Апигенин (ромашка);Apigenin;Сон, стресс и нейро;small;C15H10O5;270.24;2.84;2.58;90.9;0.002;5.59;2.0–8.0;ox0 hy0 he0 li1 mo0;flavonoid sedative_mild cyp_inh_mild
+luteolin;Лютеолин;Luteolin;Антиоксиданты;small;C15H10O6;286.24;2.53;2.28;111.1;0.006;5.58;2.0–7.0;ox1 hy0 he0 li1 mo0;catechol flavonoid polyphenol chelator
+myricetin;Мирицетин;Myricetin;Антиоксиданты;small;C15H10O8;318.24;1.4;1.69;151.6;0.017;5.37;2.0–5.5;ox3 hy0 he1 li2 mo0;catechol pyrogallol flavonoid polyphenol chelator baselabile oxprone
+diosgenin;Диосгенин (диоскорея);Diosgenin;Гормоны: бустеры;small;C27H42O3;414.63;5.7;5.71;38.7;0.0;;2.0–9.0;ox0 hy0 he0 li0 mo0;lipo
+ashwagandha;Ашваганда (KSM-66, корень);Ashwagandha;Адаптогены;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;sedative thyroid_up immunostim hepatox_rare
+rhodiola;Родиола розовая;Rhodiola;Адаптогены;extract;C14H20O7;300.31;-0.9;-1.25;119.6;200;;3.0–7.0;ox1 hy1 he1 li1 mo1;stimulant_mild maoi_weak
+eleuthero;Элеутерококк (элеутерозиды);Eleutherococcus;Адаптогены;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;stimulant_mild
+astragalus;Астрагал;Astragalus;Адаптогены;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;immunostim
+shilajit;Шиладжит (мумиё);Shilajit;Адаптогены;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;chelator fulvic
+ginseng;Женьшень;Ginseng;Адаптогены;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;stimulant_mild hypogly_mild antiplatelet_mild
+tulsi;Тулси (базилик священный);Tulsi;Адаптогены;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;sedative_mild
+schisandra;Лимонник китайский (шизандрин);Schisandra;Мембраны и печень;extract;C24H32O6;416.5;3.9;;;0.01;;3.0–8.0;ox0 hy0 he0 li0 mo0;cyp3a4inh stimulant_mild
+bacopa;Бакопа монье;Bacopa;Сон, стресс и нейро;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;sedative_mild
+ginkgo;Гинкго билоба;Ginkgo biloba;Сон, стресс и нейро;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;antiplatelet
+lionsmane;Ежовик гребенчатый (Lion's Mane);Lion's Mane;Сон, стресс и нейро;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;fibre
+catsclaw;Кошачий коготь (Uncaria tomentosa);Cat's claw;Адаптогены;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;immunostim cyp3a4inh_mild
+andrographolide;Андрографолид;Andrographolide;Растительные экстракты;extract;C20H30O5;350.46;2.6;1.96;87.0;0.2;;3.0–6.0;ox0 hy2 he1 li0 mo0;baselabile bitter antiplatelet_mild hypotens_mild
+boswellia;Босвеллия (AKBA);Boswellia;Суставы и кожа;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;lipo
+glycyrrhizin;Глицирризин (глицирризиновая кислота);Glycyrrhizin;Растительные экстракты;extract;C42H62O16;822.9;2.8;;;10;2.96;4.5–8.0;ox0 hy1 he0 li0 mo0;mineralocort sweetener surfactant gelacid
+artichoke;Артишок (листья);Artichoke extract;Мембраны и печень;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;choleretic
+dandelion;Одуванчик (корень);Dandelion;Мембраны и печень;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;diuretic
+udca;УДХК (урсодезоксихолевая кислота);UDCA;Мембраны и печень;small;C24H40O4;392.58;3.0;4.48;77.8;0.02;4.74;7.5–10.0;ox0 hy0 he0 li0 mo0;bileacid bitter rx
+tudca;ТУДХК (тауроурсодезоксихолевая кислота);TUDCA;Мембраны и печень;small;C26H45NO6S;499.71;1.0;3.4;123.9;50;1.83;3.0–9.0;ox0 hy1 he0 li0 mo1;bileacid bitter acidic
+oleuropein;Олеуропеин;Oleuropein;Растительные экстракты;extract;C25H32O13;540.5;0.4;;;20;;3.0–6.0;ox2 hy2 he1 li1 mo1;catechol polyphenol bitter hypotens_mild
+cape;Кофеиновой кислоты фенэтиловый эфир (CAPE);CAPE;Антиоксиданты;small;C17H16O4;284.31;3.4;2.9;66.8;0.01;;3.0–6.5;ox2 hy2 he1 li1 mo0;catechol polyphenol chelator ester baselabile
+tannins;Танины (дубильная кислота);Tannins;Растительные экстракты;extract;C76H52O46;1701.2;;;;250;;2.5–6.0;ox2 hy2 he1 li1 mo1;tannin polyphenol chelator protprecip alkprecip feabsinh thiamine_inact acidic
+sulforaphane;Сульфорафан;Sulforaphane;Мембраны и печень;small;C6H11NOS2;177.29;0.72;1.25;29.4;10;;3.0–6.0;ox1 hy3 he3 li1 mo2;electrophile itc baselabile
+piperine;Пиперин / длинный перец;Long pepper;Мембраны и печень;small;C17H19NO3;285.34;2.78;3.0;38.8;0.04;;2.0–9.0;ox0 hy0 he0 li3 mo0;bioenh cyp3a4inh pgpinh
+stevioside;Стевиозид;Stevioside;Вспомогательные вещества;excipient;C38H60O18;804.9;;;;1.25;;3.0–9.0;ox0 hy0 he0 li0 mo0;sweetener
+melatonin;Мелатонин;Melatonin;Сон, стресс и нейро;small;C13H16N2O2;232.28;1.6;1.86;54.1;2.0;;3.0–8.0;ox1 hy0 he0 li3 mo0;sedative hormone_sleep cyp1a2sub
+ldopa;L-ДОФА (леводопа);L-DOPA;Сон, стресс и нейро;small;C9H11NO4;197.19;-2.39;0.05;103.8;5.0;5.54;2.0–4.0;ox3 hy0 he1 li2 mo1;dopaminergic ldopa catechol chelator lnaa amine1 oxprone rx
+ginger;Имбирь (экстракт корня);Ginger root extract;Ферменты, ЖКТ и микробиом;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;antiplatelet_mild lipo
+rosemary;Розмарин (экстракт);Rosemary extract;Антиоксиданты;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;catechol polyphenol antiox_lipid
+gentian;Горечавка (корень);Gentian root;Ферменты, ЖКТ и микробиом;extract;;;;;;;;3.0–8.0;ox1 hy1 he1 li1 mo1;bitter
+citric;Лимонная кислота безводная;Citric acid;Вспомогательные вещества;excipient;C6H8O7;192.12;;-1.25;132.1;1450;2.23;1.0–13.0;ox0 hy0 he0 li0 mo0;acidic chelator
+nacit;Натрия цитрат дигидрат;Sodium citrate;Вспомогательные вещества;excipient;C6H5Na3O7·2H2O;294.1;;-5.25;140.6;720;9.36;1.0–13.0;ox0 hy0 he0 li0 mo0;electrolyte chelator buffer
+nahco3;Натрия гидрокарбонат;Sodium bicarbonate;Вспомогательные вещества;excipient;CHNaO3;84.01;;-1.11;60.4;96;8.34;1.0–13.0;ox0 hy0 he0 li0 mo0;basic electrolyte effervescent
+nah2po4;Натрия дигидрофосфат дигидрат;Sodium dihydrogen phosphate;Вспомогательные вещества;excipient;NaH2PO4·2H2O;156.0;;-1.56;80.6;850;4.7;1.0–13.0;ox0 hy0 he0 li0 mo0;phos_inorg electrolyte buffer
+na2hpo4;Натрия гидрофосфат безводный;Disodium phosphate;Вспомогательные вещества;excipient;HNa2O4P;141.96;;-2.19;83.4;118;9.7;1.0–13.0;ox0 hy0 he0 li0 mo0;phos_inorg electrolyte buffer
+nabenz;Натрия бензоат;Sodium benzoate;Вспомогательные вещества;excipient;C7H5NaO2;144.1;;0.05;40.1;556;7.91;1.0–13.0;ox0 hy0 he0 li0 mo0;preserv_benzoate electrolyte
+ksorb;Калия сорбат;Potassium sorbate;Вспомогательные вещества;excipient;C6H7KO2;150.22;;-0.13;40.1;580;8.39;1.0–13.0;ox0 hy0 he0 li0 mo0;preserv_sorbate electrolyte
+mparaben;Метилпарабен;Methylparaben;Вспомогательные вещества;excipient;C8H8O3;152.15;1.96;1.18;46.5;2.5;;1.0–13.0;ox0 hy0 he0 li0 mo0;preserv_paraben
+edta;Динатрия эдетат (ЭДТА);Disodium EDTA;Вспомогательные вещества;excipient;C10H14N2Na2O8·2H2O;372.2;;-4.74;161.3;100;4.43;1.0–13.0;ox0 hy0 he0 li0 mo0;edta chelator_strong
+metabisulfite;Натрия метабисульфит;Sodium metabisulfite;Вспомогательные вещества;excipient;Na2O5S2;190.11;;-1.67;97.3;540;4.56;1.0–13.0;ox0 hy0 he0 li0 mo0;sulfite reducing
+ascpalm;Аскорбилпальмитат;Ascorbyl palmitate;Вспомогательные вещества;excipient;C22H38O7;414.54;6.0;4.62;113.3;0.0;;1.0–13.0;ox0 hy0 he0 li0 mo0;antiox_lipid
+tocoph;Токоферол (антиоксидант масел);Tocopherol;Вспомогательные вещества;excipient;;;12.0;;;0.0;;1.0–13.0;ox0 hy0 he0 li0 mo0;antiox_lipid
+glycerin;Глицерин;Glycerin;Вспомогательные вещества;excipient;C3H8O3;92.09;-1.76;-1.67;60.7;1000000;;1.0–13.0;ox0 hy0 he0 li0 mo0;cosolv_gly hygro
+pg;Пропиленгликоль;Propylene glycol;Вспомогательные вещества;excipient;C3H8O2;76.09;-0.92;-0.64;40.5;1000000;;1.0–13.0;ox0 hy0 he0 li0 mo0;cosolv_pg penetr
+ethanol;Этанол 96%;Ethanol;Вспомогательные вещества;excipient;C2H6O;46.07;-0.31;-0.0;20.2;1000000;;1.0–13.0;ox0 hy0 he0 li0 mo0;cosolv_eth ethanol
+peg400;ПЭГ 400;PEG 400;Вспомогательные вещества;excipient;;400;;;;1000000;;1.0–13.0;ox0 hy0 he0 li0 mo0;cosolv_peg peroxide
+mct;Масло MCT (триглицериды средней цепи);MCT oil;Вспомогательные вещества;excipient;;;;;;0.0;;1.0–13.0;ox0 hy0 he0 li0 mo0;oilbase
+olive;Масло оливковое;Olive oil;Вспомогательные вещества;excipient;;;;;;0.0;;1.0–13.0;ox0 hy0 he0 li0 mo0;oilbase
+ps80;Полисорбат 80;Polysorbate 80;Вспомогательные вещества;excipient;;1310;;;;100;;1.0–13.0;ox0 hy0 he0 li0 mo0;surfactant peroxide
+lecithin;Лецитин соевый / подсолнечный;Lecithin;Вспомогательные вещества;excipient;;;;;;0.0;;1.0–13.0;ox0 hy0 he0 li0 mo0;surfactant emulsifier lipid oxprone
+carbomer;Карбомер 940;Carbomer;Вспомогательные вещества;excipient;;;;;;10;;1.0–13.0;ox0 hy0 he0 li0 mo0;carbomer anionpoly gelling
+hec;Гидроксиэтилцеллюлоза;Hydroxyethylcellulose;Вспомогательные вещества;excipient;;;;;;20;;1.0–13.0;ox0 hy0 he0 li0 mo0;gelling nonionic
+hpmc;Гипромеллоза (ГПМЦ);HPMC;Вспомогательные вещества;excipient;;;;;;20;;1.0–13.0;ox0 hy0 he0 li0 mo0;gelling nonionic
+gelatin;Желатин;Gelatin;Вспомогательные вещества;excipient;;;;;;;;1.0–13.0;ox0 hy0 he0 li0 mo0;gelatin protein
+peg_base;ПЭГ 1450/3350 (основа троше и свечей);PEG base;Вспомогательные вещества;excipient;;;;;;1000;;1.0–13.0;ox0 hy0 he0 li0 mo0;pegbase peroxide
+hardfat;Твёрдый жир (Witepsol H15 / Supocire);Hard fat;Вспомогательные вещества;excipient;;;;;;0.0;;1.0–13.0;ox0 hy0 he0 li0 mo0;fatbase
+cocoabutter;Масло какао;Cocoa butter;Вспомогательные вещества;excipient;;;;;;0.0;;1.0–13.0;ox0 hy0 he0 li0 mo0;fatbase
+plo;Lipoderm / PLO-гель;Lipoderm PLO;Вспомогательные вещества;excipient;;;;;;;;1.0–13.0;ox0 hy0 he0 li0 mo0;tdbase surfactant
+mcc;Микрокристаллическая целлюлоза (МКЦ);Microcrystalline cellulose;Вспомогательные вещества;excipient;;;;;;0.0;;1.0–13.0;ox0 hy0 he0 li0 mo0;filler
+lactose;Лактоза моногидрат;Lactose monohydrate;Вспомогательные вещества;excipient;C12H22O11·H2O;360.3;;-5.4;189.5;195;;1.0–13.0;ox0 hy0 he0 li0 mo0;redsugar filler
+rice;Рисовая мука / крахмал;Rice flour;Вспомогательные вещества;excipient;;;;;;0.0;;1.0–13.0;ox0 hy0 he0 li0 mo0;filler starch
+sio2;Кремния диоксид коллоидный (Aerosil);Silicon dioxide;Вспомогательные вещества;excipient;;;;;;0.0;;1.0–13.0;ox0 hy0 he0 li0 mo0;glidant adsorbent
+mgst;Магния стеарат;Magnesium stearate;Вспомогательные вещества;excipient;;;;;;0.0;;1.0–13.0;ox0 hy0 he0 li0 mo0;lubricant Mg
+sucralose;Сукралоза;Sucralose;Вспомогательные вещества;excipient;;;;;;280;;1.0–13.0;ox0 hy0 he0 li0 mo0;sweetener
+xylitol;Ксилит;Xylitol;Вспомогательные вещества;excipient;C5H12O5;152.15;;-2.95;101.2;640;;1.0–13.0;ox0 hy0 he0 li0 mo0;sweetener
+nacl;Натрия хлорид;Sodium chloride;Вспомогательные вещества;excipient;ClNa;58.44;;;;360;7.0;1.0–13.0;ox0 hy0 he0 li0 mo0;electrolyte tonic
+benzylalc;Спирт бензиловый;Benzyl alcohol;Вспомогательные вещества;excipient;C7H8O;108.14;1.1;1.18;20.2;40;;1.0–13.0;ox0 hy0 he0 li0 mo0;preserv
+wfi;Вода для инъекций / бактериостатическая вода;Water for injection;Вспомогательные вещества;excipient;H2O;18.02;;;;1000000;;1.0–13.0;ox0 hy0 he0 li0 mo0;water

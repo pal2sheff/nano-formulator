@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Совместимость рецептур</title>
+<meta name="description" content="Калькулятор совместимости и синергии веществ в рецептурах компаундинговой аптеки. Оценочный расчёт для врачей.">
+<script>try { var t = localStorage.getItem('cc_theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}</script>
+<style>
+/*STYLE*/
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="brand"><h1>Совместимость рецептур</h1><span>инструмент поддержки решений для врача</span></div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="recipe" aria-selected="true">Рецептура</button>
+      <button role="tab" data-tab="card" aria-selected="false">Вещество</button>
+      <button role="tab" data-tab="method" aria-selected="false">Методика</button>
+    </nav>
+    <div class="theme-wrap"><button class="icon-btn" id="themeBtn" title="Тема оформления" aria-label="Тема оформления"></button></div>
+  </div>
+</header>
+
+<main>
+  <section id="tab-recipe">
+    <div class="layout">
+      <aside class="col-in">
+        <div class="card">
+          <div class="card-h"><h2>Лекарственная форма</h2><span class="sub" id="formRoute"></span></div>
+          <div class="forms" id="forms"></div>
+          <div class="params" id="params"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h2>Состав на приём</h2><span class="sub" id="itemCount"></span></div>
+          <div class="search">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="5"/><path d="m11 11 3.5 3.5"/></svg>
+            <input id="q" type="search" placeholder="Выберите из списка или введите 3 буквы" autocomplete="off" aria-label="Выбор вещества"><button type="button" class="dd-toggle" aria-label="Открыть список веществ" aria-expanded="false">Список<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 6 4 4 4-4"/></svg></button>
+            <div class="dd" id="dd" hidden></div>
+          </div>
+          <div class="items" id="items"></div>
+          <div class="implicit" id="implicit"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h2>Примеры</h2><button class="btn" id="clearBtn" type="button">Очистить</button></div>
+          <div class="ex-list" id="examples"></div>
+        </div>
+      </aside>
+      <div class="col-out" id="out"></div>
+    </div>
+  </section>
+
+  <section id="tab-card" hidden>
+    <div class="card" style="margin-bottom:16px">
+      <div class="search mol-search">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="5"/><path d="m11 11 3.5 3.5"/></svg>
+        <input id="q2" type="search" placeholder="Выберите из списка или введите 3 буквы" autocomplete="off" aria-label="Выбор вещества"><button type="button" class="dd-toggle" aria-label="Открыть список веществ" aria-expanded="false">Список<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 6 4 4 4-4"/></svg></button>
+        <div class="dd" id="dd2" hidden></div>
+      </div>
+    </div>
+    <div id="mol"></div>
+  </section>
+
+  <section id="tab-method" hidden>
+    <div class="card prose" id="method"></div>
+  </section>
+</main>
+<div class="disclaimer">Все расчёты оценочные и основаны на моделях и справочных данных. Инструмент не выдаёт дозировок; окончательное решение о приготовлении принимает провизор.</div>
+<div class="tip" id="tip" hidden></div>
+
+<script id="db" type="application/json">/*DB*/</script>
+<script>
+/*JS*/
+</script>
+</body>
+</html>

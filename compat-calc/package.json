@@ -1,0 +1,10 @@
+{
+  "name": "compat-calc",
+  "private": true,
+  "description": "Калькулятор совместимости и синергии для компаундинговой аптеки",
+  "scripts": {
+    "build": "node build.js",
+    "test": "node --test test/engine.test.js",
+    "test:browser": "node test/browser.js"
+  }
+}
