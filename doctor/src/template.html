@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Подбор состава</title>
+<meta name="description" content="Врачебная версия: синергия, направленность и противопоказания компонентов индивидуальной рецептуры.">
+<script>try { var t = localStorage.getItem('cc_theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}</script>
+<style>
+/*STYLE*/
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="brand"><h1>Подбор состава</h1><span>синергия · направленность · противопоказания</span></div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="recipe" aria-selected="true">Состав</button>
+      <button role="tab" data-tab="card" aria-selected="false">Вещество</button>
+      <button role="tab" data-tab="method" aria-selected="false">О методе</button>
+    </nav>
+    <div class="theme-wrap"><button class="icon-btn" id="themeBtn" title="Тема оформления" aria-label="Тема оформления"></button></div>
+  </div>
+</header>
+
+<main>
+  <section id="tab-recipe">
+    <div class="layout">
+      <aside class="col-in">
+        <div class="card">
+          <div class="card-h"><h2>Состав</h2><span class="sub" id="itemCount"></span></div>
+          <div class="search">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="5"/><path d="m11 11 3.5 3.5"/></svg>
+            <input id="q" type="search" placeholder="Выберите из списка или введите 3 буквы" autocomplete="off" aria-label="Выбор вещества">
+            <button type="button" class="dd-toggle" aria-label="Открыть список веществ" aria-expanded="false">Список<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 6 4 4 4-4"/></svg></button>
+            <div class="dd" id="dd" hidden></div>
+          </div>
+          <div class="items" id="items"></div>
+        </div>
+        <details class="card pbox" id="condBox">
+          <summary class="card-h"><h2>Пациент</h2><span class="sub" id="condN"></span><button class="linkbtn" id="condClear" type="button" hidden>Сбросить</button></summary>
+          <div class="sub small muted" style="margin:-4px 0 10px">Отметьте состояния и текущую терапию — противопоказания будут выделены.</div>
+          <div class="conds" id="conds"></div>
+        </details>
+        <div class="card">
+          <div class="card-h"><h2>Примеры</h2><button class="btn" id="clearBtn" type="button">Очистить</button></div>
+          <div class="ex-list" id="examples"></div>
+        </div>
+      </aside>
+      <div class="col-out" id="out"></div>
+    </div>
+  </section>
+
+  <section id="tab-card" hidden>
+    <div class="card" style="margin-bottom:16px">
+      <div class="search mol-search">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="5"/><path d="m11 11 3.5 3.5"/></svg>
+        <input id="q2" type="search" placeholder="Выберите из списка или введите 3 буквы" autocomplete="off" aria-label="Выбор вещества">
+        <button type="button" class="dd-toggle" aria-label="Открыть список веществ" aria-expanded="false">Список<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 6 4 4 4-4"/></svg></button>
+        <div class="dd" id="dd2" hidden></div>
+      </div>
+    </div>
+    <div id="mol"></div>
+  </section>
+
+  <section id="tab-method" hidden>
+    <div class="card prose" id="method"></div>
+  </section>
+</main>
+<div class="disclaimer">Справочная оценка по базе взаимодействий; не заменяет клиническое решение врача. Совместимость в лекарственной форме проверяет провизор-технолог.</div>
+<div class="tip" id="tip" hidden></div>
+
+<script id="db" type="application/json">/*DB*/</script>
+<script>
+/*JS*/
+</script>
+</body>
+</html>
