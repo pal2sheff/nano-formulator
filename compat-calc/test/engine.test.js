@@ -160,3 +160,23 @@ test('Новые вещества: структура и дескрипторы 
   assert.equal(Object.keys(A.BY).length, 301);
   for (const id of ['methblue', 'eugenol', 'dmannose', 'betaala']) assert.ok(A.BY[id].svg, id);
 });
+
+/* ---------- Конструктор сайта в версии технолога ---------- */
+test('Формы сайта переводятся в формы движка; гамми — троше на желатине', () => {
+  assert.deepEqual(A.engineFor('КП').form, 'caps');
+  const g = A.engineFor('ГМ'); assert.equal(g.form, 'troche'); assert.equal(g.P.base, 'gelatin');
+  assert.equal(A.engineFor('СЛ').form, 'drops');
+});
+test('Позиции сайта → состав движка: единицы сайта, профилактическая доза, анализ в форме', () => {
+  const items = [{ n: 'NADH', amt: A.siteDose('NADH', 'СЛ').prof }, { n: 'Липосомальный NAD+', amt: A.siteDose('Липосомальный NAD+', 'СЛ').prof }];
+  const ei = A.engineItems(items, 'СЛ');
+  assert.equal(ei[0].id, 'nadh'); assert.equal(ei[0].unit, 'мг');
+  const r = A.analyze({ form: 'drops', P: A.engineP('СЛ', ei), items: ei });
+  assert.ok(r.findings.some(f => f.rule === 'ph_overlap'));
+});
+test('Отметки технолога: окна pH в каплях, таблица аптеки, без проблем в капсулах', () => {
+  assert.equal(A.sitePairStatus('NADH', 'Липосомальный Витамин C (аскорбиновая кислота)', 'СЛ').lvl, 2);
+  assert.equal(A.sitePairStatus('NADH', 'Липосомальный Витамин C (аскорбиновая кислота)', 'КП').lvl, 0);
+  assert.equal(A.sitePairStatus('Бромелайн', 'Семакс', 'НС').lvl, 3);
+  assert.equal(A.zoneOf(A.siteDose('Астаксантин', 'СЛ').ther, A.siteDose('Астаксантин', 'СЛ')), 'ther');
+});

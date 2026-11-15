@@ -1,54 +1,44 @@
-// Проверка страницы в браузере: ошибки консоли, примеры, карточка, методика
+// Проверка версии технолога (конструктор как на сайте) в Chromium: node test/browser.js [папка для скриншотов]
 const { chromium } = require('playwright');
 const path = require('path');
 const out = process.argv[2] || null;
+const URL = 'file://' + path.join(__dirname, '..', 'index.html');
 (async () => {
-  const b = await chromium.launch();
-  const errs = [];
-  const run = async (opts, tag) => {
+  const b = await chromium.launch(); const errs = [];
+  for (const [tag, opts] of [['desktop', { viewport: { width: 1400, height: 900 } }], ['mobile', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }]]) {
     const p = await b.newPage(opts);
-    p.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errs.push(`[${tag}] ${m.type()}: ${m.text()}`); });
-    p.on('pageerror', e => errs.push(`[${tag}] pageerror: ${e.message}`));
-    await p.goto('file://' + path.join(__dirname, '..', 'index.html'));
-    const n = await p.$$eval('#examples button', x => x.length);
-    for (let i = 0; i < n; i++) {
-      await p.click(`#examples button[data-ex="${i}"]`);
-      const v = await p.textContent('.verdict .big');
-      if (tag === 'desktop') console.log('пример', i, '→', v);
-      if (out && i === 0 && tag === 'desktop') await p.screenshot({ path: `${out}/${tag}-ex0.png`, fullPage: true });
-      if (out && i === 3) await p.screenshot({ path: `${out}/${tag}-ex3.png`, fullPage: tag !== 'desktop' });
-    }
-    // наведение на матрицу
-    await p.click('#examples button[data-ex="1"]');
-    const cell = await p.$('.mx td[data-tip]:not(.self)');
-    if (cell) { await cell.hover(); if (tag === 'desktop') console.log('tooltip:', (await p.textContent('#tip')).slice(0, 80)); }
-    if (out && tag === 'desktop') await p.screenshot({ path: `${out}/${tag}-ex1.png`, fullPage: true });
-    // добавить вещество поиском
-    await p.click('#clearBtn');
-    await p.fill('#q', 'аргинин'); await p.keyboard.press('Enter');
-    await p.fill('[data-a="0"]', '1000');
-    await p.fill('#q', 'nadh'); await p.keyboard.press('Enter');
-    await p.fill('[data-a="1"]', '10');
-    await p.click('[data-f="drops"]');
-    if (tag === 'desktop') console.log('поиск+ввод →', await p.textContent('.verdict .big'));
-    // копирование
+    p.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errs.push(`[${tag}] ${m.text()}`); });
+    p.on('pageerror', e => errs.push(`[${tag}] ${e.message}`));
+    await p.goto(URL); await p.evaluate(() => localStorage.clear()); await p.reload();
+    // СЛ: медь + NAC — несовместимо, отметка в списке до добавления
+    await p.click('[data-form="СЛ"]');
+    await p.click('#colTh .cbtn >> text=Витамино-минеральная терапия');
+    await p.click('#colCat .cbtn >> text=Минералы и микроэлементы');
+    await p.click('#colMol [data-sn="Меди бисглицинат"]');
+    await p.fill('#q', 'ацетилцист');
+    const mark = await p.$eval('#colMol [data-sn="N-Ацетилцистеин"] .mst', e => e.textContent).catch(() => 'нет');
+    await p.click('#colMol [data-sn="N-Ацетилцистеин"]'); await p.fill('#q', '');
+    const v1 = await p.textContent('.verdict .big');
+    // параметры формы меняются и учитываются
+    const params = await p.$$eval('#params label', x => x.length);
+    // капсулы: лизин на лактозе — Майяр
+    await p.click('#clearBtn'); await p.click('[data-form="КП"]');
+    await p.selectOption('#p_filler', 'lactose');
+    await p.fill('#q', 'лизин'); await p.click('#colMol .mbtn'); await p.fill('#q', '');
+    const maillard = await p.$$eval('.fnd-h .ty', x => x.some(e => /Майяр/.test(e.textContent)));
+    // доза ползунком, матрица, копирование, карточка
+    await p.$eval('#items [data-amtn="0"]', e => { e.value = 2000; e.dispatchEvent(new Event('input', { bubbles: true })); });
+    await p.waitForTimeout(400);
+    const zone = await p.textContent('#items .dcard .zone');
     await p.click('#copyBtn');
-    // карточка
-    await p.goto('file://' + path.join(__dirname, '..', 'index.html') + '#card/vitc');
-    await p.waitForSelector('.chart svg');
-    const ch = await p.$('[data-chart]'); await ch.scrollIntoViewIfNeeded(); const bb = await ch.boundingBox(); await p.mouse.move(bb.x + bb.width * 0.4, bb.y + bb.height / 2);
-    if (tag === 'desktop') console.log('chart tip:', (await p.textContent('#tip')).slice(0, 60));
-    if (out) await p.screenshot({ path: `${out}/${tag}-card.png`, fullPage: true });
-    for (const id of ['curcumin', 'oxytocin', 'spirulina', 'cubis', 'nadh', 'mct']) { await p.goto('file://' + path.join(__dirname, '..', 'index.html') + '#card/' + id); await p.waitForSelector('#mol table'); }
-    await p.goto('file://' + path.join(__dirname, '..', 'index.html') + '#method');
-    if (out && tag === 'mobile') await p.screenshot({ path: `${out}/${tag}-method.png` });
+    if (tag === 'desktop') console.log('NAC при меди:', mark, '| СЛ медь+NAC:', v1, '| параметров формы:', params, '| лизин на лактозе — Майяр:', maillard, '| зона:', zone);
+    if (out) await p.screenshot({ path: `${out}/tech-${tag}.png`, fullPage: true });
+    await p.click('#items .dcard .mlink'); await p.waitForSelector('#mol .card');
+    await p.goto(URL + '#method');
     const sw = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     if (sw > 0) errs.push(`[${tag}] горизонтальная прокрутка ${sw}px`);
     await p.close();
-  };
-  await run({ viewport: { width: 1400, height: 900 } }, 'desktop');
-  await run({ viewport: { width: 1400, height: 900 }, colorScheme: 'dark' }, 'dark');
-  await run({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }, 'mobile');
+  }
   await b.close();
   console.log(errs.length ? 'ОШИБКИ:\n' + errs.join('\n') : 'Ошибок в консоли нет');
   process.exit(errs.length ? 1 : 0);

@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 DB = json.loads((ROOT / 'compat-calc' / 'data' / 'molecules.json').read_text(encoding='utf-8'))
-OUT = ROOT / 'doctor' / 'data' / 'site_catalog.json'
+OUT = ROOT / 'compat-calc' / 'data' / 'site_catalog.json'
 
 FORMS = [  # код сайта → форма движка и параметры
     dict(code='КП', n='Капсулы', engine='caps', P={}),

@@ -105,7 +105,6 @@ function bindPicker(wrap, onPick, opt = {}) {
 }
 
 /* ---------- Конструктор ---------- */
-const FORM_ICO = { КП: 'caps', СЛ: 'drops', ТР: 'troche', ГМ: 'troche', НС: 'nasal', ТД: 'td', КК: 'cream', РС: 'supp', ВС: 'supp' };
 const fico = k => `<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round">${{
   caps: '<rect x="2" y="6" width="14" height="6" rx="3"/><path d="M9 6v6"/>', drops: '<path d="M9 2.5c2.5 3.2 4 5.4 4 7.5a4 4 0 0 1-8 0c0-2.1 1.5-4.3 4-7.5z"/>',
   troche: '<rect x="3" y="5" width="12" height="9" rx="2"/><path d="M3 9h12"/>', nasal: '<path d="M7 16V9l2-6 2 6v7"/><path d="M7 11h4"/>',
@@ -238,15 +237,6 @@ function renderOut(r) {
     ${ffs.some(f => f.sev < 2) ? `<details class="more"><summary>Учесть: ${ffs.filter(f => f.sev < 2).length}</summary><div class="flist" style="margin-top:6px">${[...new Set(ffs.filter(f => f.sev < 2).map(reasonOf))].map(t => `<div class="citem">${badge('minor', 'Учесть')}<span>${esc(t)}</span></div>`).join('')}</div></details>` : ''}
   </div>`;
 
-  // противопоказания пациенту
-  if (r.patient.length) {
-    h += `<div class="card"><div class="card-h"><h2>Противопоказания пациенту</h2></div><div class="flist">` +
-      r.patient.map(c => `<div class="crow"><div class="crow-h"><b>${esc(c.n)}</b></div>${c.items.filter(x => !isFallback(x)).map(x => `<div class="citem">${csev(x.sev)}<span><button type="button" class="mlink" data-mol="${x.id}">${esc(nm(x.id))}</button> — ${esc(x.t)}</span></div>`).join('')}${fallbackLine(c)}</div>`).join('') + '</div></div>';
-  }
-
-  // формы доставки
-  if (FF) h += formsHTML(FF);
-
   // синергия — всегда, сгруппирована по типу + подсказки
   const byType = {};
   r.syn.forEach(f => { (byType[f.type] = byType[f.type] || { mech: f.mech, pairs: [] }).pairs.push(f.ids); });
@@ -258,6 +248,15 @@ function renderOut(r) {
       : `<div class="muted small">Между выбранными веществами известных синергий нет.</div>`}
     ${sug.length ? `<div class="sugg"><div class="sugg-h">Можно усилить</div><div class="pills">${sug.map(x => `<button type="button" class="addpill" data-add="${x.id}" data-t="${esc(x.type + ' — с ' + x.with.map(nm).join(', '))}">${I.plus}${esc(nm(x.id))}</button>`).join('')}</div></div>` : ''}
   </div>`;
+
+  // противопоказания пациенту
+  if (r.patient.length) {
+    h += `<div class="card"><div class="card-h"><h2>Противопоказания пациенту</h2></div><div class="flist">` +
+      r.patient.map(c => `<div class="crow"><div class="crow-h"><b>${esc(c.n)}</b></div>${c.items.filter(x => !isFallback(x)).map(x => `<div class="citem">${csev(x.sev)}<span><button type="button" class="mlink" data-mol="${x.id}">${esc(nm(x.id))}</button> — ${esc(x.t)}</span></div>`).join('')}${fallbackLine(c)}</div>`).join('') + '</div></div>';
+  }
+
+  // формы доставки
+  if (FF) h += formsHTML(FF);
 
   // взаимодействия
   const main = r.inter.filter(f => f.sev >= 2), minor = r.inter.filter(f => f.sev < 2);
@@ -441,7 +440,7 @@ function init() {
     const k = e.target.dataset.amt ?? e.target.dataset.amtn; if (k == null) return;
     const it = S.items[+k], d = siteDose(it.n, S.form); it.amt = Math.max(0, Math.min(maxOf(d), +e.target.value || 0));
     const card = e.target.closest('.dcard');
-    card.querySelectorAll('[data-amt],[data-amtn]').forEach(x => { if (x !== e.target) x.value = it.amt; });
+    card.querySelectorAll('[data-amt],[data-amtn]').forEach(x => { if (x !== e.target || +x.value > it.amt) x.value = it.amt; });
     const z = zoneOf(it.amt, d); const zt = card.querySelector('.zone'); zt.className = 'zone ' + (z || ''); zt.textContent = z ? ZONES[z] : 'доза не указана';
     card.querySelector('.zbar').outerHTML = zoneBar(d, it.amt);
     save(); clearTimeout(window._dt); window._dt = setTimeout(() => update(true), 300);
