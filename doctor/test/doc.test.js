@@ -68,3 +68,43 @@ test('Заключение', () => {
   const t = A.docReport(run('synephrine melatonin', ['htn']));
   assert.match(t, /ВЕРДИКТ/); assert.match(t, /Схема приёма/); assert.match(t, /Артериальная гипертензия/);
 });
+
+/* ---------- Формы доставки ---------- */
+const F = (ids, dose) => A.formsFor(ids.split(' '), dose);
+const rate = (r, f) => (r.rows.find(x => x.f === f) || { rating: r.na.includes(f) ? 'na' : '?' }).rating;
+test('Формы: НАДН + витамин C — капсулы можно, водные капли нельзя', () => {
+  const r = F('nadh vitc');
+  assert.ok(['best', 'ok'].includes(rate(r, 'caps')));
+  assert.equal(rate(r, 'drops'), 'no');
+});
+test('Формы: пептид — предпочтительно назально/сублингвально, при проглатывании с ограничениями', () => {
+  const r = F('semax');
+  assert.equal(rate(r, 'nasal'), 'best');
+  assert.equal(rate(r, 'caps'), 'limit');
+  assert.equal(rate(r, 'cream'), 'na');
+});
+test('Формы: D3 + K2 — масляные капли предпочтительны, водные с ограничениями', () => {
+  const r = F('vitd3 vitk2');
+  assert.equal(rate(r, 'oildr'), 'best');
+  assert.equal(rate(r, 'drops'), 'limit');
+});
+test('Формы: пробиотик — нельзя в жидких и с нагревом, мармелад включён', () => {
+  const r = F('akkermansia');
+  assert.equal(rate(r, 'drops'), 'no');
+  assert.equal(rate(r, 'troche'), 'no');
+  assert.equal(rate(r, 'gummy'), 'no');
+  assert.ok(['best', 'ok'].includes(rate(r, 'caps')));
+});
+test('Формы: доза влияет на загрузку (аргинин 5 г — троше нельзя)', () => {
+  assert.equal(rate(F('arg', { arg: { amt: 5000, unit: 'мг' } }), 'troche'), 'no');
+  assert.ok(F('arg', { arg: { amt: 5000, unit: 'мг' } }).typical === false);
+});
+test('Формы: прогестерон — наружные и вагинальные формы применимы', () => {
+  const r = F('prog');
+  assert.notEqual(rate(r, 'vag'), 'na');
+  assert.notEqual(rate(r, 'td'), 'na');
+});
+test('Формы: медь + NAC + витамин C — жидкие нельзя', () => {
+  const r = F('cubis nac vitc');
+  assert.equal(rate(r, 'drops'), 'no');
+});

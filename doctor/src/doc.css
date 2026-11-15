@@ -75,3 +75,22 @@ details.more > summary h2 { font-size: 15px; color: var(--text); }
 .addpill svg { width: 13px; height: 13px; }
 .addpill:hover { background: var(--syn-bg); border-style: solid; }
 .verdict { gap: 10px; }
+
+/* дозы в составе */
+.ditem { grid-template-columns: minmax(0, 1fr) 132px 28px; }
+.ditem .dose { display: flex; border: 1px solid var(--border-2); border-radius: 999px; background: var(--surface); overflow: hidden; }
+.ditem .dose:focus-within { border-color: var(--accent); }
+.ditem .dose input { width: 64px; border: 0; background: transparent; padding: 5px 4px 5px 10px; text-align: right; font-family: var(--mono); font-size: 13px; outline: none; min-width: 0; }
+.ditem .dose select { border: 0; background: transparent; padding: 5px 6px 5px 2px; font-size: 12.5px; color: var(--text-2); outline: none; }
+/* формы доставки */
+.fgroups { display: flex; flex-direction: column; gap: 14px; }
+.fgroup > .sev { margin-bottom: 6px; }
+.flist2 { display: flex; flex-direction: column; }
+.frow { display: grid; grid-template-columns: minmax(170px, 260px) 1fr; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; align-items: baseline; }
+.frow:last-child { border-bottom: 0; }
+.frow .fn { font-weight: 500; }
+.frow.best .fn { color: var(--ok); }
+.frow.no .fn { color: var(--crit); }
+.frow .fr { color: var(--text-2); font-size: 13px; }
+@media (max-width: 640px) { .frow { grid-template-columns: minmax(0, 1fr); gap: 2px; } .ditem { grid-template-columns: minmax(0, 1fr) 118px 26px; } .ditem .dose input { width: 52px; } }
+.ditem .nm button { overflow-wrap: anywhere; }

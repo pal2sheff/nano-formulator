@@ -26,9 +26,10 @@ const ACT = LIST.filter(m => m.kind !== 'excipient');
 const effOf = m => (m.pharm && (m.pharm.eff || m.pharm.pc)) || '';
 
 /* ---------- Состояние ---------- */
-let S = { ids: [], cond: [] }, CUR_MOL = null, LAST = null;
+let S = { ids: [], cond: [], dose: {} }, CUR_MOL = null, LAST = null, LASTF = null;
+const UNITS = ['мг', 'мкг', 'г', 'МЕ'];
 function save() { try { localStorage.setItem('cc_doc', JSON.stringify(S)); } catch (e) {} }
-function restore() { try { const s = JSON.parse(localStorage.getItem('cc_doc') || 'null'); if (s && Array.isArray(s.ids)) S = { ids: s.ids.filter(id => BY[id] && BY[id].kind !== 'excipient'), cond: (s.cond || []).filter(c => COND_N[c]) }; } catch (e) {} }
+function restore() { try { const s = JSON.parse(localStorage.getItem('cc_doc') || 'null'); if (s && Array.isArray(s.ids)) S = { ids: s.ids.filter(id => BY[id] && BY[id].kind !== 'excipient'), cond: (s.cond || []).filter(c => COND_N[c]), dose: s.dose || {} }; } catch (e) {} }
 
 /* ---------- Выбор вещества (список + поиск по первым буквам) ---------- */
 const norm = s => String(s || '').toLowerCase().replace(/ё/g, 'е');
@@ -102,9 +103,11 @@ function addId(id) { if (S.ids.includes(id)) { toast(nm(id) + ' уже в сос
 function renderItems() {
   $('#clearBtn').hidden = !S.ids.length;
   $('#items').innerHTML = S.ids.length ? S.ids.map((id, k) => {
-    const m = BY[id];
+    const m = BY[id], d = S.dose[id] || {};
+    const u = d.unit || (id === 'vitd3' ? 'МЕ' : 'мг');
     return `<div class="ditem"><div class="nm"><button type="button" data-mol="${id}" title="Карточка вещества">${esc(m.ru)}</button>
       ${effOf(m) ? `<div class="meta">${esc(effOf(m))}</div>` : ''}</div>
+      <div class="dose"><input type="number" inputmode="decimal" min="0" step="any" data-dose="${id}" value="${d.amt ?? ''}" placeholder="доза" aria-label="Доза на приём"><select data-unit="${id}" aria-label="Единица">${UNITS.map(x => `<option${x === u ? ' selected' : ''}>${x}</option>`).join('')}</select></div>
       <button type="button" class="rm" data-rm="${k}" aria-label="Удалить" title="Удалить">✕</button></div>`;
   }).join('') : '<div class="empty">Выберите вещества из списка</div>';
 }
@@ -135,11 +138,13 @@ function renderOut(r) {
   const out = $('#out');
   if (!r.verdict) { out.innerHTML = `<div class="card verdict"><div class="v-title"><span class="big" style="color:var(--text)">Выберите вещества</span></div><div class="v-desc">Появятся синергия, взаимодействия, противопоказания и схема приёма.</div></div>`; return; }
   const v = r.verdict;
+  const FF = formsFor(r.ids, S.dose); LASTF = FF;
   const pc = r.patient.reduce((a, c) => a + c.items.filter(x => x.sev >= 2 && !isFallback(x)).length, 0);
   const i3 = r.inter.filter(f => f.sev === 3).length, i2 = r.inter.filter(f => f.sev === 2).length;
   let h = `<div class="card verdict ${v.k}">
     <div class="v-top"><div class="v-title">${(I[v.k] || '').replace('<svg ', '<svg class="vi" ')}<span class="big">${v.t}</span></div>
     <button class="btn primary" id="copyBtn" type="button">${I.copy}Копировать</button></div>
+    ${(() => { const F = FF; const b = F && F.rows.filter(x => x.rating === 'best'); return b && b.length ? `<div class="focus"><span class="muted">Лучшие формы:</span> <b>${b.map(x => esc(x.n)).join(', ')}</b></div>` : (F && F.split ? '<div class="focus"><span class="muted">Формы:</span> <b>нужно разделить состав</b></div>' : ''); })()}
     <div class="counts">${r.syn.length ? badge('syn', 'Синергия · ' + r.syn.length) : ''}${pc ? badge('crit', 'Противопоказания · ' + pc) : ''}${i3 ? badge('major', 'Серьёзно · ' + i3) : ''}${i2 ? badge('mod', 'Умеренно · ' + i2) : ''}</div>
   </div>`;
 
@@ -148,6 +153,9 @@ function renderOut(r) {
     h += `<div class="card"><div class="card-h"><h2>Противопоказания пациенту</h2></div><div class="flist">` +
       r.patient.map(c => `<div class="crow"><div class="crow-h"><b>${esc(c.n)}</b></div>${c.items.filter(x => !isFallback(x)).map(x => `<div class="citem">${csev(x.sev)}<span><button type="button" class="mlink" data-mol="${x.id}">${esc(nm(x.id))}</button> — ${esc(x.t)}</span></div>`).join('')}${fallbackLine(c)}</div>`).join('') + '</div></div>';
   }
+
+  // формы доставки
+  if (FF) h += formsHTML(FF);
 
   // синергия — всегда, сгруппирована по типу + подсказки
   const byType = {};
@@ -191,6 +199,15 @@ function renderOut(r) {
   }
   out.innerHTML = h;
 }
+function formsHTML(FF, compact) {
+  const groups = ['best', 'ok', 'limit', 'no'].map(k => [k, FF.rows.filter(r => r.rating === k)]).filter(g => g[1].length);
+  const row = r => `<div class="frow ${r.rating}"><div class="fn">${esc(r.n)}${r.note ? ` <span class="muted small">· ${esc(r.note)}</span>` : ''}</div><div class="fr">${esc(r.reasons.join('; '))}</div></div>`;
+  return `<div class="card"><div class="card-h"><h2>Формы доставки</h2>${FF.typical && !compact ? '<span class="sub">где доза не указана — по типичной</span>' : ''}</div>
+    <div class="fgroups">${groups.map(([k, rs]) => `<div class="fgroup">${badge(RATING[k].k, RATING[k].t)}<div class="flist2">${rs.map(row).join('')}</div></div>`).join('')}</div>
+    ${FF.split ? `<div class="snote"><b>Целиком ни одна форма не подходит. Разделить:</b> ${FF.split.map((g, i) => `${i + 1}) ${g.ids.map(id => esc(sn(id))).join(', ')} — ${esc(formName(g.form))}`).join('; ')}</div>` : ''}
+    ${FF.na.length ? `<div class="muted small" style="margin-top:10px">Не применяется для этого состава: ${FF.na.map(f => esc(formName(f))).join(', ')}</div>` : ''}
+  </div>`;
+}
 function isFallback(x) { return x.c === 'preg' && x.sev === 2 && /недостаточно/.test(x.t); }
 function fallbackLine(c, compact) {
   const fb = c.items.filter(isFallback); if (!fb.length) return '';
@@ -217,6 +234,7 @@ function renderMol(id) {
     </div>
     ${clinText(m) ? `<div class="notes2" style="margin-top:12px"><div>${esc(clinText(m))}</div></div>` : ''}
   </div>`;
+  const F1 = formsFor([id], {}); if (F1) h += formsHTML(F1, true);
   h += `<div class="card"><div class="card-h"><h2>Хорошо сочетается</h2><span class="sub">${p.syn.length}</span></div>${p.syn.length ? `<div class="pills">${chips(p.syn, () => 'syn')}</div>` : '<div class="muted small">Известных синергий в базе нет</div>'}</div>`;
   h += `<div class="card"><div class="card-h"><h2>Взаимодействия</h2><span class="sub">${p.inter.length}</span></div>${p.inter.length ? `<div class="pills">${chips(p.inter, x => DOC_SEV[x.sev].k)}</div><div class="legend"><span><i style="background:var(--major)"></i>серьёзно</span><span><i style="background:var(--mod)"></i>умеренно</span><span><i style="background:var(--minor-bg);outline:1px solid var(--minor)"></i>учесть</span><span class="muted">наведите — тип взаимодействия</span></div>` : '<div class="muted small">Значимых взаимодействий в базе нет</div>'}</div>`;
   h += `<div class="card"><div class="card-h"><h2>Противопоказания и осторожность</h2></div>${ct.length ? '<div class="flist">' + ct.map(c => `<div class="citem">${csev(c.sev)}<span><b>${esc(COND_N[c.c])}.</b> ${esc(c.t)}</span></div>`).join('') + '</div>' : '<div class="muted small">По базе не отмечены</div>'}
@@ -240,6 +258,14 @@ function renderMethod() {
 <h3>Схема приёма</h3><p>Время суток и связь с едой — по фармакологии (стимуляторы утром, седативные вечером, жирорастворимые с едой). Конфликтующие пары разносятся по разным приёмам (раскраска графа конфликтов).</p>
 <h3>Ограничения</h3><ul><li>Справочная оценка по базе из 221 активного вещества; не учитываются дозы, индивидуальные особенности и полный список принимаемых препаратов.</li><li>Перечень противопоказаний не исчерпывающий — для рецептурных препаратов действует инструкция.</li><li>Решение о назначении принимает врач.</li></ul>
 <h3>Источники</h3><ul><li>Natural Medicines Comprehensive Database; Stockley's Drug Interactions; Stockley's Herbal Medicines Interactions.</li><li>Инструкции по медицинскому применению рецептурных препаратов.</li><li>Обзорные публикации по отдельным сочетаниям (Shoba 1998 — пиперин и куркумин; Sekhar 2021 — GlyNAC и др.).</li></ul>`;
+}
+
+function formsReport(F) {
+  if (!F) return '';
+  const L = ['', 'Формы доставки' + (F.typical ? ' (где доза не указана — по типичной)' : '') + ':'];
+  ['best', 'ok', 'limit', 'no'].forEach(k => { const rs = F.rows.filter(r => r.rating === k); if (rs.length) L.push(`  ${RATING[k].t}: ` + rs.map(r => r.n + (r.reasons.length && k !== 'best' ? ` (${r.reasons[0]})` : '')).join('; ')); });
+  if (F.split) L.push('  Разделить: ' + F.split.map((g, i) => `${i + 1}) ${g.ids.map(sn).join(', ')} — ${formName(g.form).toLowerCase()}`).join('; '));
+  return '\n' + L.join('\n');
 }
 
 /* ---------- Сервис ---------- */
@@ -276,13 +302,15 @@ function init() {
   $('#items').addEventListener('click', e => { const r = e.target.closest('[data-rm]'); if (r) { S.ids.splice(+r.dataset.rm, 1); update(); } });
   $('#conds').addEventListener('click', e => { const c = e.target.closest('[data-cond]'); if (!c) return; const k = c.dataset.cond; S.cond = S.cond.includes(k) ? S.cond.filter(x => x !== k) : S.cond.concat(k); update(); });
   $('#condClear').addEventListener('click', () => { S.cond = []; update(); });
-  $('#clearBtn').addEventListener('click', () => { S.ids = []; update(); });
+  $('#clearBtn').addEventListener('click', () => { S.ids = []; S.dose = {}; update(); });
+  $('#items').addEventListener('input', e => { const id = e.target.dataset.dose; if (!id) return; S.dose[id] = Object.assign({}, S.dose[id], { amt: e.target.value === '' ? '' : +e.target.value, unit: (S.dose[id] && S.dose[id].unit) || (id === 'vitd3' ? 'МЕ' : 'мг') }); save(); clearTimeout(window._dt); window._dt = setTimeout(() => { LAST = analyzeDoc(S.ids, S.cond); renderOut(LAST); }, 250); });
+  $('#items').addEventListener('change', e => { const id = e.target.dataset.unit; if (!id) return; S.dose[id] = Object.assign({}, S.dose[id], { unit: e.target.value }); update(); });
   document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (!b) return; if (b.dataset.tab === 'recipe') { history.replaceState(null, '', location.pathname + location.search); route(); } else location.hash = b.dataset.tab === 'card' ? '#card/' + (CUR_MOL || '') : '#method'; });
   document.addEventListener('click', e => {
     const a = e.target.closest('[data-addmol]'); if (a) { addId(a.dataset.addmol); history.replaceState(null, '', location.pathname + location.search); route(); return; }
     const ad = e.target.closest('[data-add]'); if (ad) { addId(ad.dataset.add); return; }
     const m = e.target.closest('[data-mol]'); if (m) { location.hash = '#card/' + m.dataset.mol; return; }
-    if (e.target.closest('#copyBtn')) copyText(docReport(LAST));
+    if (e.target.closest('#copyBtn')) copyText(docReport(LAST) + formsReport(LASTF));
   });
   document.addEventListener('mouseover', e => { const t = e.target.closest('[title].cpill'); if (t && t.title) { t.dataset.t = t.title; t.removeAttribute('title'); } const d = e.target.closest('[data-t]'); if (d) { tip.textContent = d.dataset.t; tip.hidden = false; } });
   document.addEventListener('mousemove', e => { if (tip.hidden) return; if (!e.target.closest('[data-t]')) { tip.hidden = true; return; } const w = tip.offsetWidth, hh = tip.offsetHeight; let x = e.clientX + 14, y = e.clientY + 14; if (x + w > innerWidth - 8) x = e.clientX - w - 14; if (y + hh > innerHeight - 8) y = e.clientY - hh - 14; tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; });
