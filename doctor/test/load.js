@@ -6,7 +6,7 @@ function load() {
   const json = fs.readFileSync(path.join(tech, 'data/molecules.json'), 'utf8');
   const ctx = { document: { getElementById: () => ({ textContent: json }) }, console };
   vm.createContext(ctx);
-  vm.runInContext(SRC.map(f => fs.readFileSync(f, 'utf8')).join('\n;\n') + '\n;globalThis.API = { analyzeDoc, partners, docReport, contraFor, BY, DIRS, DIR_OF, CONDITIONS };', ctx);
+  vm.runInContext(SRC.map(f => fs.readFileSync(f, 'utf8')).join('\n;\n') + '\n;globalThis.API = { analyzeDoc, partners, suggest, synBetween, docReport, contraFor, BY, DIRS, DIR_OF, CONDITIONS };', ctx);
   return ctx.API;
 }
 module.exports = { load, SRC };

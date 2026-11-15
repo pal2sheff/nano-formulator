@@ -34,7 +34,7 @@ function analyzeDoc(ids, cond = []) {
     if (i === j) continue;
     const A = ms[i], B = ms[j];
     for (const R of PAIR_RULES) {
-      if (R.cat !== 'pharm' && R.cat !== 'syn') continue;
+      if (R.cat !== 'pharm') continue;
       if (DOC_SKIP_RULES.has(R.id)) continue;
       if (R.a === R.b && j < i) continue;
       if (!matchSel(A, R.a) || !matchSel(B, R.b)) continue;
@@ -49,6 +49,8 @@ function analyzeDoc(ids, cond = []) {
       list.push({ key, rule: R.id, sev, type: R.type, ids: [A.id, B.id], t: A.ru + ' + ' + B.ru, mech: fill(R.mech, A, B), act: fill(R.act, A, B), split: !!R.split });
     }
   }
+  // синергия: правила базы + врачебные пары
+  for (let i = 0; i < ms.length; i++) for (let j = i + 1; j < ms.length; j++) synBetween(ms[i], ms[j]).forEach(f => syn.push(f));
   // группы: суммирование эффектов
   for (const G of GROUP_RULES) {
     const mm = ms.map(m => ({ m, w: G.w(m) })).filter(o => o.w > 0);
@@ -111,13 +113,57 @@ function analyzeDoc(ids, cond = []) {
   return { ids, ms, cond: [...condSet], inter, syn, dirList, condRows, patient, notes, schedule, groups, verdict };
 }
 
+/* ---------- Синергия пары ---------- */
+const SYN_CACHE = new Map();
+function synBetween(A, B) {
+  const ck = A.id < B.id ? A.id + '|' + B.id : B.id + '|' + A.id;
+  if (SYN_CACHE.has(ck)) return SYN_CACHE.get(ck);
+  const out = [], seen = new Set();
+  const push = (X, Y, type, mech, rule) => { if (seen.has(type)) return; seen.add(type); out.push({ key: rule + ':' + ck, rule, sev: 0, type, ids: [X.id, Y.id], t: X.ru + ' + ' + Y.ru, mech }); };
+  for (const [X, Y] of [[A, B], [B, A]]) {
+    for (const R of PAIR_RULES) {
+      if (R.cat !== 'syn' || DOC_SKIP_RULES.has(R.id)) continue;
+      if (!matchSel(X, R.a) || !matchSel(Y, R.b)) continue;
+      if (R.not && (R.not(X) || R.not(Y))) continue;
+      push(X, Y, R.type, fill(R.mech, X, Y), R.id);
+    }
+    for (const [k, R] of DOC_SYN.entries()) {
+      if (!selMatch(X, R.a) || !selMatch(Y, R.b) || X.id === Y.id) continue;
+      if (R.not && (R.not(X) || R.not(Y))) continue;
+      push(X, Y, R.type, R.t, 'dsyn' + k);
+    }
+  }
+  SYN_CACHE.set(ck, out);
+  return out;
+}
+// подсказки: чем можно усилить состав (синергия с выбранными, без серьёзных взаимодействий и противопоказаний пациенту)
+function suggest(r, limit = 8) {
+  if (!r.ms.length) return [];
+  const have = new Set(r.ids), cand = [];
+  for (const o of LIST) {
+    if (o.kind === 'excipient' || have.has(o.id)) continue;
+    const with_ = r.ms.filter(m => synBetween(m, o).length);
+    if (!with_.length) continue;
+    if (r.cond.length && contraFor(o).some(c => r.cond.includes(c.c) && c.sev >= 2)) continue;
+    const t = analyzeDoc(r.ids.concat(o.id), []);
+    if (t.inter.some(f => f.sev >= 2 && f.ids.includes(o.id))) continue;
+    cand.push({ id: o.id, with: with_.map(m => m.id), type: synBetween(with_[0], o)[0].type, rx: o.T.has('rx') });
+  }
+  const PREF = ['cacit', 'mgbis', 'znbis', 'fefum', 'mecbl', 'mthf', 'vitc', 'p5p', 'vitd3', 'vitk2', 'semet', 'nmn', 'resv', 'dha', 'curcumin', 'gsh'];
+  const pr = id => { const i = PREF.indexOf(id); return i < 0 ? 99 : i; };
+  const haveKeys = new Set(r.ms.map(dupKey).filter(Boolean)), used = new Set();
+  return cand.filter(c => !c.rx).sort((a, b) => b.with.length - a.with.length || pr(a.id) - pr(b.id) || nm(a.id).localeCompare(nm(b.id), 'ru'))
+    .filter(c => { const k = dupKey(BY[c.id]); if (!k) return true; if (haveKeys.has(k) || used.has(k)) return false; used.add(k); return true; })
+    .slice(0, limit);
+}
+
 /* ---------- Карточка: партнёры по синергии и взаимодействиям ---------- */
 function partners(id) {
   const m = BY[id]; const syn = [], inter = [];
   for (const o of LIST) {
     if (o.id === id || o.kind === 'excipient') continue;
+    synBetween(m, o).forEach(f => syn.push({ id: o.id, type: f.type }));
     const r = analyzeDoc([id, o.id]);
-    r.syn.forEach(f => syn.push({ id: o.id, type: f.type }));
     r.inter.filter(f => !f.group && f.rule !== 'food_conflict').forEach(f => inter.push({ id: o.id, sev: f.sev, type: f.type }));
   }
   const uniq = a => { const s = {}; a.forEach(x => { if (!s[x.id] || (x.sev || 0) > (s[x.id].sev || 0)) s[x.id] = x; }); return Object.values(s); };

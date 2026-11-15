@@ -43,7 +43,7 @@ function searchMol(q, g) {
   const base = g ? ACT.filter(m => inGroup(m, g)) : ACT;
   if (!q) return g ? base : base.slice().sort((a, b) => GROUPS.findIndex(x => x.k === firstDir(a)) - GROUPS.findIndex(x => x.k === firstDir(b)) || a.ru.localeCompare(b.ru, 'ru'));
   const words = tokens(q); if (!words.length) return base;
-  const score = m => m._r.startsWith(q) || m._e.startsWith(q) ? 0 : words.every(w => m._t.some(t => t.startsWith(w))) ? 1 : words.every(w => m._q.includes(w)) ? 2 : -1;
+  const score = m => words.every(w => m._t.includes(w)) ? 0 : m._r.startsWith(q) || m._e.startsWith(q) ? 0.5 : words.every(w => m._t.some(t => t.startsWith(w))) ? 1 : words.every(w => m._q.includes(w)) ? 2 : -1;
   let r = base.map(m => [m, score(m)]).filter(a => a[1] >= 0);
   if (words.every(w => w.length <= 3) && r.some(a => a[1] <= 1)) r = r.filter(a => a[1] <= 1);
   return r.sort((a, b) => a[1] - b[1] || a[0].ru.localeCompare(b[0].ru, 'ru')).map(a => a[0]);
@@ -100,13 +100,13 @@ function bindPicker(wrap, onPick, opt = {}) {
 /* ---------- Ввод ---------- */
 function addId(id) { if (S.ids.includes(id)) { toast(nm(id) + ' уже в составе'); return; } S.ids.push(id); update(); }
 function renderItems() {
-  $('#itemCount').textContent = S.ids.length ? S.ids.length + ' ' + plural(S.ids.length, 'вещество', 'вещества', 'веществ') : '';
+  $('#clearBtn').hidden = !S.ids.length;
   $('#items').innerHTML = S.ids.length ? S.ids.map((id, k) => {
-    const m = BY[id]; const d = (DIR_OF[id] || []).map(x => DIRS[x].n);
+    const m = BY[id];
     return `<div class="ditem"><div class="nm"><button type="button" data-mol="${id}" title="Карточка вещества">${esc(m.ru)}</button>
-      <div class="meta">${effOf(m) ? esc(effOf(m)) : esc(m.cat)}${d.length ? ' · <span class="muted">' + esc(d.slice(0, 2).join(', ')) + '</span>' : ''}</div></div>
+      ${effOf(m) ? `<div class="meta">${esc(effOf(m))}</div>` : ''}</div>
       <button type="button" class="rm" data-rm="${k}" aria-label="Удалить" title="Удалить">✕</button></div>`;
-  }).join('') : '<div class="empty">Выберите вещества из списка или загрузите пример</div>';
+  }).join('') : '<div class="empty">Выберите вещества из списка</div>';
 }
 function renderConds() {
   $('#condN').textContent = S.cond.length ? 'отмечено: ' + S.cond.length : '';
@@ -133,51 +133,59 @@ function synHTML(f) {
 }
 function renderOut(r) {
   const out = $('#out');
-  if (!r.verdict) { out.innerHTML = `<div class="card verdict"><div class="v-title"><span class="big" style="color:var(--text)">Состав пуст</span></div><div class="v-desc">Выберите вещества — инструмент покажет направленность состава, полезные сочетания, взаимодействия, противопоказания и схему приёма. Отметьте состояния пациента, чтобы выделить противопоказания.</div></div>`; return; }
+  if (!r.verdict) { out.innerHTML = `<div class="card verdict"><div class="v-title"><span class="big" style="color:var(--text)">Выберите вещества</span></div><div class="v-desc">Появятся синергия, взаимодействия, противопоказания и схема приёма.</div></div>`; return; }
   const v = r.verdict;
-  const pc = r.patient.reduce((a, c) => a + c.items.filter(x => x.sev >= 2).length, 0);
+  const pc = r.patient.reduce((a, c) => a + c.items.filter(x => x.sev >= 2 && !isFallback(x)).length, 0);
   const i3 = r.inter.filter(f => f.sev === 3).length, i2 = r.inter.filter(f => f.sev === 2).length;
   let h = `<div class="card verdict ${v.k}">
     <div class="v-top"><div class="v-title">${(I[v.k] || '').replace('<svg ', '<svg class="vi" ')}<span class="big">${v.t}</span></div>
-    <button class="btn primary" id="copyBtn" type="button">${I.copy}Копировать заключение</button></div>
-    <div class="v-desc">${v.d}</div>
-    <div class="counts">${pc ? badge('crit', 'Противопоказания · ' + pc) : ''}${i3 ? badge('major', 'Серьёзно · ' + i3) : ''}${i2 ? badge('mod', 'Умеренно · ' + i2) : ''}${r.syn.length ? badge('syn', 'Синергия · ' + r.syn.length) : ''}</div>
-    ${r.dirList.length ? `<div class="focus"><span class="muted small">Основная направленность:</span> ${r.dirList.slice(0, 3).map(d => `<b>${esc(d.n)}</b>${d.ids.length > 1 ? ` <span class="muted">(${d.ids.length})</span>` : ''}`).join(' · ')}</div>` : ''}
+    <button class="btn primary" id="copyBtn" type="button">${I.copy}Копировать</button></div>
+    <div class="counts">${r.syn.length ? badge('syn', 'Синергия · ' + r.syn.length) : ''}${pc ? badge('crit', 'Противопоказания · ' + pc) : ''}${i3 ? badge('major', 'Серьёзно · ' + i3) : ''}${i2 ? badge('mod', 'Умеренно · ' + i2) : ''}</div>
   </div>`;
 
-  // противопоказания пациенту — сразу после вердикта
+  // противопоказания пациенту
   if (r.patient.length) {
-    h += `<div class="card"><div class="card-h"><h2>Противопоказания пациенту</h2><span class="sub">по отмеченным состояниям</span></div><div class="flist">` +
-      r.patient.map(c => `<div class="crow"><div class="crow-h"><b>${esc(c.n)}</b></div>${c.items.filter(x => !(x.sev === 2 && c.k === 'preg' && isFallback(x))).map(x => `<div class="citem">${csev(x.sev)}<span><button type="button" class="mlink" data-mol="${x.id}">${esc(nm(x.id))}</button> — ${esc(x.t)}</span></div>`).join('')}${fallbackLine(c)}</div>`).join('') + '</div></div>';
+    h += `<div class="card"><div class="card-h"><h2>Противопоказания пациенту</h2></div><div class="flist">` +
+      r.patient.map(c => `<div class="crow"><div class="crow-h"><b>${esc(c.n)}</b></div>${c.items.filter(x => !isFallback(x)).map(x => `<div class="citem">${csev(x.sev)}<span><button type="button" class="mlink" data-mol="${x.id}">${esc(nm(x.id))}</button> — ${esc(x.t)}</span></div>`).join('')}${fallbackLine(c)}</div>`).join('') + '</div></div>';
   }
 
-  // направленность
-  h += `<div class="card"><div class="card-h"><h2>Направленность</h2><span class="sub">на что действует состав</span></div><div class="dirs">` +
-    r.dirList.map(d => `<div class="drow${d.ids.length > 1 ? ' strong' : ''}"><div class="dn">${esc(d.n)}</div><div class="dbar"><i style="width:${Math.round(d.ids.length / r.ms.length * 100)}%"></i></div><div class="dm">${mlinks(d.ids)}</div></div>`).join('') +
-    (r.ms.some(m => BIOENH.has(m.id)) ? `<div class="drow"><div class="dn">Усилитель всасывания</div><div class="dbar"></div><div class="dm">${mlinks(r.ms.filter(m => BIOENH.has(m.id)).map(m => m.id))}</div></div>` : '') +
-    '</div></div>';
+  // синергия — всегда, сгруппирована по типу + подсказки
+  const byType = {};
+  r.syn.forEach(f => { (byType[f.type] = byType[f.type] || { mech: f.mech, pairs: [] }).pairs.push(f.ids); });
+  const sug = suggest(r);
+  h += `<div class="card syn-list"><div class="card-h"><h2>Синергия</h2></div>
+    ${Object.keys(byType).length ? `<div class="flist">${Object.entries(byType).map(([t, g]) => `<div class="fnd syn"><div class="fnd-h">${badge('syn', esc(t))}</div>
+      <div class="fnd-t">${g.pairs.map(p => mlinks(p).replace('</button>, <button', '</button> + <button')).join('<span class="muted"> · </span>')}</div>
+      ${g.pairs.length === 1 ? `<details class="why"><summary>Почему</summary><p>${esc(g.mech)}</p></details>` : ''}</div>`).join('')}</div>`
+      : `<div class="muted small">Между выбранными веществами известных синергий нет.</div>`}
+    ${sug.length ? `<div class="sugg"><div class="sugg-h">Можно усилить</div><div class="pills">${sug.map(x => `<button type="button" class="addpill" data-add="${x.id}" data-t="${esc(x.type + ' — с ' + x.with.map(nm).join(', '))}">${I.plus}${esc(nm(x.id))}</button>`).join('')}</div></div>` : ''}
+  </div>`;
 
-  if (r.syn.length) h += `<div class="card syn-list"><div class="card-h"><h2>Синергия</h2><span class="sub">полезные сочетания</span></div><div class="flist">${r.syn.map(synHTML).join('')}</div></div>`;
-
+  // взаимодействия
   const main = r.inter.filter(f => f.sev >= 2), minor = r.inter.filter(f => f.sev < 2);
-  if (r.inter.length) h += `<div class="card"><div class="card-h"><h2>Взаимодействия</h2><span class="sub">суммирование, антагонизм, всасывание, метаболизм</span></div><div class="flist">${main.map(interHTML).join('')}
+  if (r.inter.length) h += `<div class="card"><div class="card-h"><h2>Взаимодействия</h2></div><div class="flist">${main.map(interHTML).join('')}
     ${minor.length ? `<details class="more"${main.length ? '' : ' open'}><summary>Учесть: ${minor.length}</summary><div class="flist" style="margin-top:6px">${minor.map(interHTML).join('')}</div></details>` : ''}</div></div>`;
+
+  // направленность
+  h += `<div class="card"><div class="card-h"><h2>Направленность</h2></div><div class="dirs">` +
+    r.dirList.map(d => `<div class="drow${d.ids.length > 1 ? ' strong' : ''}"><div class="dn">${esc(d.n)}</div><div class="dbar"><i style="width:${Math.round(d.ids.length / r.ms.length * 100)}%"></i></div><div class="dm">${mlinks(d.ids)}</div></div>`).join('') +
+    '</div></div>';
 
   // схема приёма
   const s = r.schedule;
-  const col = k => `<div class="scol"><div class="sh">${k === 'morning' ? I.sunrise : k === 'evening' ? I.moon : I.clock}${SLOT_N[k]}</div>${s.slots[k].length ? s.slots[k].map(id => `<div class="sitem"><button type="button" class="mlink" data-mol="${id}">${esc(nm(id))}</button>${s.tim[id].food ? `<span class="tag">${FOOD_N[s.tim[id].food]}</span>` : ''}</div>`).join('') : '<div class="muted small">—</div>'}</div>`;
-  h += `<div class="card"><div class="card-h"><h2>Схема приёма</h2><span class="sub">ориентировочно</span></div>
+  const col = k => s.slots[k].length ? `<div class="scol"><div class="sh">${k === 'morning' ? I.sunrise : k === 'evening' ? I.moon : I.clock}${SLOT_N[k]}</div>${s.slots[k].map(id => `<div class="sitem"><button type="button" class="mlink" data-mol="${id}">${esc(nm(id))}</button>${s.tim[id].food ? `<span class="tag">${FOOD_N[s.tim[id].food]}</span>` : ''}</div>`).join('')}</div>` : '';
+  h += `<div class="card"><div class="card-h"><h2>Схема приёма</h2></div>
     <div class="sched">${col('morning')}${col('any')}${col('evening')}</div>
-    ${s.separate.length ? `<div class="snote"><b>Разнести по времени (≥ 2 ч):</b> ${s.separate.map(([a, b]) => esc(nm(a)) + ' ↔ ' + esc(nm(b))).join('; ')}</div>` : ''}
-    ${r.groups && r.groups.length > 1 ? `<div class="snote"><b>Предлагается ${r.groups.length} ${plural(r.groups.length, 'приём', 'приёма', 'приёмов')} (отдельные формы):</b> ${r.groups.map((g, i) => `${i + 1}) ${g.map(id => esc(nm(id))).join(', ')}`).join('; ')}</div>` : (r.ms.length > 1 ? '<div class="snote ok">Состав можно принимать одновременно, в одной форме (совместимость в форме — за технологом).</div>' : '')}
+    ${s.separate.length ? `<div class="snote"><b>Разнести ≥ 2 ч:</b> ${s.separate.map(([a, b]) => esc(nm(a)) + ' ↔ ' + esc(nm(b))).join('; ')}</div>` : ''}
+    ${r.groups && r.groups.length > 1 ? `<div class="snote"><b>${r.groups.length} ${plural(r.groups.length, 'приём', 'приёма', 'приёмов')}:</b> ${r.groups.map((g, i) => `${i + 1}) ${g.map(id => esc(nm(id))).join(', ')}`).join('; ')}</div>` : ''}
   </div>`;
 
-  // противопоказания состава при других состояниях
+  // противопоказания при других состояниях — свёрнуто
   const other = r.condRows.filter(c => !c.sel);
   if (other.length || r.notes.length) {
-    h += `<div class="card"><details class="more"${r.patient.length ? '' : ' open'}><summary><h2 style="display:inline">Противопоказания состава</h2> <span class="sub">${other.length} ${plural(other.length, 'состояние', 'состояния', 'состояний')}${r.patient.length ? ' помимо отмеченных' : ''}</span></summary>
-      <div class="ctable">${other.map(c => `<div class="crow2"><div class="cn">${esc(c.n)}</div><div class="cv">${c.items.filter(x => !isFallback(x)).map(x => `<span class="cpill ${CONTRA_SEV[x.sev].k}" title="${esc(CONTRA_SEV[x.sev].t + ': ' + x.t)}" data-mol="${x.id}">${esc(nm(x.id))}</span>`).join('')}${fallbackLine(c, true)}</div></div>`).join('')}</div>
-      <div class="legend"><span><i style="background:var(--crit)"></i>противопоказано</span><span><i style="background:var(--mod)"></i>с осторожностью</span><span><i style="background:var(--minor-bg);outline:1px solid var(--minor)"></i>учесть</span><span class="muted">наведите на вещество — пояснение</span></div>
+    h += `<div class="card"><details class="more"><summary><h2 style="display:inline">Противопоказания при других состояниях</h2> <span class="muted">(${other.length})</span></summary>
+      <div class="ctable">${other.map(c => `<div class="crow2"><div class="cn">${esc(c.n)}</div><div class="cv">${c.items.filter(x => !isFallback(x)).map(x => `<span class="cpill ${CONTRA_SEV[x.sev].k}" data-t="${esc(CONTRA_SEV[x.sev].t + ': ' + x.t)}" data-mol="${x.id}">${esc(nm(x.id))}</span>`).join('')}${fallbackLine(c, true)}</div></div>`).join('')}</div>
+      <div class="legend"><span><i style="background:var(--crit)"></i>противопоказано</span><span><i style="background:var(--mod)"></i>с осторожностью</span><span><i style="background:var(--minor-bg);outline:1px solid var(--minor)"></i>учесть</span></div>
       ${r.notes.length ? `<div class="notes2">${r.notes.map(n => `<div><b>${esc(nm(n.id))}:</b> ${esc(n.t)}</div>`).join('')}</div>` : ''}
     </details></div>`;
   }
@@ -186,7 +194,7 @@ function renderOut(r) {
 function isFallback(x) { return x.c === 'preg' && x.sev === 2 && /недостаточно/.test(x.t); }
 function fallbackLine(c, compact) {
   const fb = c.items.filter(isFallback); if (!fb.length) return '';
-  return compact ? `<span class="muted small fbl" title="${esc(fb.map(x => nm(x.id)).join(', '))}">нет данных о безопасности: ${fb.length}</span>`
+  return compact ? `<span class="muted small fbl" data-t="${esc(fb.map(x => nm(x.id)).join(', '))}">нет данных о безопасности: ${fb.length}</span>`
     : `<div class="citem">${csev(2)}<span>Нет достаточных данных о безопасности: ${mlinks(fb.map(x => x.id))}</span></div>`;
 }
 
@@ -261,7 +269,6 @@ function route() {
 function init() {
   restore(); renderMethod();
   if (innerWidth >= 960 || S.cond.length) $('#condBox').open = true;
-  $('#examples').innerHTML = DOC_EXAMPLES.map((e, i) => `<button type="button" data-ex="${i}"><span>${esc(e.n)}</span>${e.cond ? `<span class="f">${esc(e.cond.map(c => COND_N[c].split(/[,(]/)[0]).join(', '))}</span>` : ''}</button>`).join('');
   bindPicker($('#q').closest('.search'), m => addId(m.id), { multi: true, isAdded: id => S.ids.includes(id) });
   bindPicker($('#q2').closest('.search'), m => { location.hash = '#card/' + m.id; }, { isAdded: id => id === CUR_MOL });
   themeSet(themeGet());
@@ -269,15 +276,15 @@ function init() {
   $('#items').addEventListener('click', e => { const r = e.target.closest('[data-rm]'); if (r) { S.ids.splice(+r.dataset.rm, 1); update(); } });
   $('#conds').addEventListener('click', e => { const c = e.target.closest('[data-cond]'); if (!c) return; const k = c.dataset.cond; S.cond = S.cond.includes(k) ? S.cond.filter(x => x !== k) : S.cond.concat(k); update(); });
   $('#condClear').addEventListener('click', () => { S.cond = []; update(); });
-  $('#examples').addEventListener('click', e => { const b = e.target.closest('[data-ex]'); if (!b) return; const ex = DOC_EXAMPLES[+b.dataset.ex]; S = { ids: ex.items.split(' '), cond: ex.cond || [] }; if (S.cond.length) $('#condBox').open = true; update(); if (innerWidth < 960) $('#out').scrollIntoView({ behavior: 'smooth' }); });
-  $('#clearBtn').addEventListener('click', () => { S = { ids: [], cond: [] }; update(); });
+  $('#clearBtn').addEventListener('click', () => { S.ids = []; update(); });
   document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (!b) return; if (b.dataset.tab === 'recipe') { history.replaceState(null, '', location.pathname + location.search); route(); } else location.hash = b.dataset.tab === 'card' ? '#card/' + (CUR_MOL || '') : '#method'; });
   document.addEventListener('click', e => {
     const a = e.target.closest('[data-addmol]'); if (a) { addId(a.dataset.addmol); history.replaceState(null, '', location.pathname + location.search); route(); return; }
+    const ad = e.target.closest('[data-add]'); if (ad) { addId(ad.dataset.add); return; }
     const m = e.target.closest('[data-mol]'); if (m) { location.hash = '#card/' + m.dataset.mol; return; }
     if (e.target.closest('#copyBtn')) copyText(docReport(LAST));
   });
-  document.addEventListener('mouseover', e => { const t = e.target.closest('[title].cpill, .fbl'); if (t && t.title) { t.dataset.t = t.title; t.removeAttribute('title'); } const d = e.target.closest('[data-t]'); if (d) { tip.textContent = d.dataset.t; tip.hidden = false; } });
+  document.addEventListener('mouseover', e => { const t = e.target.closest('[title].cpill'); if (t && t.title) { t.dataset.t = t.title; t.removeAttribute('title'); } const d = e.target.closest('[data-t]'); if (d) { tip.textContent = d.dataset.t; tip.hidden = false; } });
   document.addEventListener('mousemove', e => { if (tip.hidden) return; if (!e.target.closest('[data-t]')) { tip.hidden = true; return; } const w = tip.offsetWidth, hh = tip.offsetHeight; let x = e.clientX + 14, y = e.clientY + 14; if (x + w > innerWidth - 8) x = e.clientX - w - 14; if (y + hh > innerHeight - 8) y = e.clientY - hh - 14; tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; });
   window.addEventListener('hashchange', route);
   update(); route();

@@ -2,30 +2,32 @@
 const { chromium } = require('playwright');
 const path = require('path');
 const out = process.argv[2] || null;
-const URL = 'file://' + path.join(__dirname, '..', process.env.PAGE || 'index.html');
+const URL = 'file://' + path.join(__dirname, '..', 'index.html');
+const SETS = [['nmn', 'tmg', 'resv', 'coq10'], ['синеф', 'мелат'], ['metformin', 'berberine', 'mecbl'], ['tongkat', 'цинка пик']];
 (async () => {
   const b = await chromium.launch(); const errs = [];
-  for (const [tag, opts] of [['desktop', { viewport: { width: 1400, height: 900 } }], ['dark', { viewport: { width: 1400, height: 900 }, colorScheme: 'dark' }], ['mobile', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }]]) {
+  for (const [tag, opts] of [['desktop', { viewport: { width: 1400, height: 900 } }], ['mobile', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }]]) {
     const p = await b.newPage(opts);
     p.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errs.push(`[${tag}] ${m.text()}`); });
     p.on('pageerror', e => errs.push(`[${tag}] ${e.message}`));
     await p.goto(URL); await p.evaluate(() => localStorage.clear()); await p.reload();
-    const n = await p.$$eval('#examples [data-ex]', x => x.length);
-    for (let i = 0; i < n; i++) {
-      await p.click(`#examples [data-ex="${i}"]`);
-      if (tag === 'desktop') console.log('пример', i, '→', await p.textContent('.verdict .big'));
-      if (out && (i === 2 || i === 4)) await p.screenshot({ path: `${out}/${process.env.PAGE ? "ni" : "doc"}-${tag}-ex${i}.png`, fullPage: true });
+    for (const [si, set] of SETS.entries()) {
+      if (await p.isVisible('#clearBtn')) await p.click('#clearBtn');
+      for (const q of set) { await p.fill('#q', q); await p.keyboard.press('Enter'); }
+      await p.click('h2');
+      const syn = await p.$$eval('.syn-list .fnd', x => x.length), sug = await p.$$eval('[data-add]', x => x.length);
+      if (tag === 'desktop') console.log(set.join('+'), '→', await p.textContent('.verdict .big'), '| синергий:', syn, '| подсказок:', sug);
+      if (out && si === 0) await p.screenshot({ path: `${out}/doc2-${tag}.png`, fullPage: true });
     }
-    // выбор из списка и состояние пациента
-    await p.click('#clearBtn');
-    await p.click('#tab-recipe .dd-toggle'); await p.click('#dd .dd-list button[data-i="0"]'); await p.click('#dd .dd-list button[data-i="5"]'); await p.click('#dd [data-done]');
-    await p.fill('#q', 'мел'); await p.keyboard.press('Enter');
-    await p.click('[data-cond="preg"]');
-    if (tag === 'desktop') console.log('выбор + беременность →', await p.$$eval('#items .ditem', x => x.length), 'вещ.;', await p.textContent('.verdict .big'));
+    // добавить из подсказки
+    const n0 = await p.$$eval('#items .ditem', x => x.length);
+    const add = await p.$('[data-add]'); if (add) { await add.click(); if ((await p.$$eval('#items .ditem', x => x.length)) !== n0 + 1) errs.push(`[${tag}] подсказка не добавила вещество`); }
+    // пациент
+    if (!(await p.isVisible('[data-cond="diab"]'))) await p.click('#condBox summary');
+    await p.click('[data-cond="diab"]');
     await p.click('#copyBtn');
-    await p.click('#items [data-mol]');
-    await p.waitForSelector('#mol .pills, #mol .muted');
-    if (out) await p.screenshot({ path: `${out}/${process.env.PAGE ? "ni" : "doc"}-${tag}-card.png`, fullPage: true });
+    await p.click('#items [data-mol]'); await p.waitForSelector('#mol .card');
+    if (out) await p.screenshot({ path: `${out}/doc2-${tag}-card.png`, fullPage: true });
     await p.goto(URL + '#method');
     const sw = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     if (sw > 0) errs.push(`[${tag}] горизонтальная прокрутка ${sw}px`);

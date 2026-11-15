@@ -13,7 +13,7 @@
 <body>
 <header class="top">
   <div class="top-in">
-    <div class="brand"><h1>Подбор состава</h1><span>синергия · направленность · противопоказания</span></div>
+    <div class="brand"><h1>Подбор состава</h1></div>
     <nav class="tabs" role="tablist">
       <button role="tab" data-tab="recipe" aria-selected="true">Состав</button>
       <button role="tab" data-tab="card" aria-selected="false">Вещество</button>
@@ -28,7 +28,7 @@
     <div class="layout">
       <aside class="col-in">
         <div class="card">
-          <div class="card-h"><h2>Состав</h2><span class="sub" id="itemCount"></span></div>
+          <div class="card-h"><h2>Состав</h2><button class="linkbtn" id="clearBtn" type="button" hidden>Очистить</button></div>
           <div class="search">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="5"/><path d="m11 11 3.5 3.5"/></svg>
             <input id="q" type="search" placeholder="Выберите из списка или введите 3 буквы" autocomplete="off" aria-label="Выбор вещества">
@@ -39,13 +39,8 @@
         </div>
         <details class="card pbox" id="condBox">
           <summary class="card-h"><h2>Пациент</h2><span class="sub" id="condN"></span><button class="linkbtn" id="condClear" type="button" hidden>Сбросить</button></summary>
-          <div class="sub small muted" style="margin:-4px 0 10px">Отметьте состояния и текущую терапию — противопоказания будут выделены.</div>
           <div class="conds" id="conds"></div>
         </details>
-        <div class="card">
-          <div class="card-h"><h2>Примеры</h2><button class="btn" id="clearBtn" type="button">Очистить</button></div>
-          <div class="ex-list" id="examples"></div>
-        </div>
       </aside>
       <div class="col-out" id="out"></div>
     </div>
@@ -67,7 +62,7 @@
     <div class="card prose" id="method"></div>
   </section>
 </main>
-<div class="disclaimer">Справочная оценка по базе взаимодействий; не заменяет клиническое решение врача. Совместимость в лекарственной форме проверяет провизор-технолог.</div>
+<div class="disclaimer">Справочная оценка; решение принимает врач.</div>
 <div class="tip" id="tip" hidden></div>
 
 <script id="db" type="application/json">/*DB*/</script>
