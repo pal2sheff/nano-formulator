@@ -1,0 +1,88 @@
+/* ===== Тема в стиле сайта nano-identica.com (модуль сайта) =====
+ * Токены сайта: --ni-blue #153983, --ni-bg #F9F9F9, --ni-muted #6D86B6, --ni-green #62B985 / #4fa774,
+ * --ni-about-bg #E9ECEF, --chip-text #0F1F3A. Заголовки — Unbounded, текст — Cera Pro (как на сайте).
+ * Сайт светлый — тема фиксирована светлой (html[data-theme="light"]). */
+:root[data-theme="light"] {
+  --ni-blue: #153983; --ni-muted: #6D86B6; --ni-green: #62B985; --ni-green-pressed: #4fa774; --ni-gray: #E9ECEF;
+  --bg: #F9F9F9; --surface: #ffffff; --surface-2: #EEF1F5; --surface-3: #E9ECEF;
+  --border: #E2E8F0; --border-2: #D9E0EA;
+  --text: #0F1F3A; --text-2: #3A4A66; --muted: #6D86B6;
+  --accent: #153983; --accent-bg: rgba(21, 57, 131, .07); --focus: #153983;
+  --minor: #3F5C99; --minor-bg: #EAF0FA;
+  --syn: #2E8754; --syn-bg: #E5F4EB; --ok: #2E8754; --ok-bg: #E5F4EB;
+  --none: #EEF1F5;
+  --shadow: 0 8px 24px rgba(15, 31, 58, .06);
+  --r: 20px;
+  --sans: 'Cera Pro', 'IBM Plex Sans', Arial, sans-serif;
+  --head: 'Unbounded', 'IBM Plex Sans', system-ui, sans-serif;
+}
+body { font-size: 15px; }
+h1, h2, h3, .v-title .big, .brand h1 { font-family: var(--head); font-weight: 500; color: var(--ni-blue); letter-spacing: -0.01em; }
+h2 { font-size: 16px; }
+a, .mlink:hover, .ditem .nm button:hover { color: var(--ni-blue); }
+
+/* шапка модуля: как навигация сайта */
+.top { background: color-mix(in srgb, var(--bg) 92%, transparent); border-bottom: 1px solid var(--border); }
+.brand h1 { font-size: 19px; }
+.brand span { color: var(--ni-muted); }
+.tabs { background: transparent; padding: 0; gap: 6px; }
+.tabs button { border-radius: 999px; padding: 9px 20px; color: var(--ni-blue); font-weight: 400; font-size: 15px; }
+.tabs button:hover { background: var(--accent-bg); }
+.tabs button[aria-selected="true"] { background: var(--ni-blue); color: #fff; box-shadow: none; }
+.theme-wrap { display: none; }
+
+/* карточки */
+.card { border: 0; border-radius: var(--r); box-shadow: var(--shadow); padding: 22px; }
+.card-h { margin-bottom: 14px; }
+.card-h .sub, .sub { color: var(--ni-muted); }
+
+/* кнопки — пилюли, как на сайте */
+.btn { border-radius: 999px; border: 1.5px solid var(--ni-blue); color: var(--ni-blue); background: transparent; padding: 7px 18px; font-weight: 400; }
+.btn:hover { background: rgba(21, 57, 131, .06); color: var(--ni-blue); border-color: var(--ni-blue); }
+.btn.primary { background: var(--ni-green); border-color: var(--ni-green); color: #fff; box-shadow: 0 6px 18px rgba(98, 185, 133, .25); padding: 9px 22px; }
+.btn.primary:hover { background: var(--ni-green-pressed); border-color: var(--ni-green-pressed); color: #fff; filter: none; }
+.btn:active { transform: translateY(1px); }
+.linkbtn { color: var(--ni-blue); }
+
+/* поиск и выпадающий список */
+.search input { border-radius: 999px; border-color: var(--border-2); padding-top: 11px; padding-bottom: 11px; padding-left: 38px; background: var(--surface); }
+.search input:focus { border-color: var(--ni-blue); box-shadow: 0 0 0 3px rgba(21, 57, 131, .12); }
+.search > svg { left: 15px; top: 13px; }
+.dd-toggle { border-radius: 0 999px 999px 0; color: var(--ni-blue); padding-right: 14px; }
+.dd { border-radius: 16px; border-color: var(--border); box-shadow: 0 20px 60px rgba(15, 31, 58, .18); }
+.dd .dh { background: var(--surface-2); color: var(--ni-blue); }
+.dd mark { background: rgba(98, 185, 133, .28); }
+
+/* чипы */
+.chip, .cchip { border-radius: 999px; border: 1px solid var(--border-2); background: var(--surface); color: var(--text); }
+.chip[aria-pressed="true"], .cchip[aria-pressed="true"] { background: var(--ni-blue); border-color: var(--ni-blue); color: #fff; }
+.cchip { padding: 6px 13px; }
+.cchip:hover, .chip:hover { border-color: var(--ni-blue); }
+
+/* списки и блоки */
+.ditem { border: 0; background: var(--surface-2); border-radius: 14px; padding: 9px 8px 9px 14px; }
+.empty { border-radius: 14px; border-color: var(--border-2); color: var(--ni-muted); }
+.ex-list button { border-radius: 999px; padding: 7px 14px; }
+.ex-list button:hover { background: var(--surface-2); color: var(--ni-blue); }
+.fnd { border: 0; border-left: 3px solid; border-radius: 14px; background: #F6F8FB; padding: 12px 14px; }
+.fnd .act { background: var(--surface); border-radius: 10px; }
+.syn-list .fnd { background: var(--syn-bg); }
+.stat, .scol, .notes2 > div { background: var(--surface-2); border-radius: 14px; }
+.crow { border: 0; border-left: 3px solid var(--crit); background: #FDF5F4; border-radius: 14px; }
+.dbar { background: var(--surface-2); }
+.dbar i { background: var(--ni-blue); opacity: .45; }
+.drow.strong .dbar i { opacity: 1; }
+.drow.strong .dn { color: var(--ni-blue); }
+.cpill { background: var(--surface-2); }
+.cpill.syn { background: var(--syn-bg); color: var(--syn); }
+.verdict { border-left-width: 5px; }
+.verdict .focus b { color: var(--ni-blue); font-weight: 500; }
+.sev { border-radius: 999px; }
+.tip, .toast { background: var(--ni-blue); color: #fff; border-radius: 12px; }
+.disclaimer { color: var(--ni-muted); }
+.prose h2 { font-size: 20px; }
+@media (max-width: 560px) {
+  .tabs button { padding: 7px 6px; font-size: 14px; }
+  .card { padding: 16px; border-radius: 16px; }
+  .brand h1 { font-size: 17px; }
+}

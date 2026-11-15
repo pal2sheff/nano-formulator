@@ -2,7 +2,7 @@
 const { chromium } = require('playwright');
 const path = require('path');
 const out = process.argv[2] || null;
-const URL = 'file://' + path.join(__dirname, '..', 'index.html');
+const URL = 'file://' + path.join(__dirname, '..', process.env.PAGE || 'index.html');
 (async () => {
   const b = await chromium.launch(); const errs = [];
   for (const [tag, opts] of [['desktop', { viewport: { width: 1400, height: 900 } }], ['dark', { viewport: { width: 1400, height: 900 }, colorScheme: 'dark' }], ['mobile', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }]]) {
@@ -14,7 +14,7 @@ const URL = 'file://' + path.join(__dirname, '..', 'index.html');
     for (let i = 0; i < n; i++) {
       await p.click(`#examples [data-ex="${i}"]`);
       if (tag === 'desktop') console.log('пример', i, '→', await p.textContent('.verdict .big'));
-      if (out && (i === 2 || i === 4)) await p.screenshot({ path: `${out}/doc-${tag}-ex${i}.png`, fullPage: true });
+      if (out && (i === 2 || i === 4)) await p.screenshot({ path: `${out}/${process.env.PAGE ? "ni" : "doc"}-${tag}-ex${i}.png`, fullPage: true });
     }
     // выбор из списка и состояние пациента
     await p.click('#clearBtn');
@@ -25,7 +25,7 @@ const URL = 'file://' + path.join(__dirname, '..', 'index.html');
     await p.click('#copyBtn');
     await p.click('#items [data-mol]');
     await p.waitForSelector('#mol .pills, #mol .muted');
-    if (out) await p.screenshot({ path: `${out}/doc-${tag}-card.png`, fullPage: true });
+    if (out) await p.screenshot({ path: `${out}/${process.env.PAGE ? "ni" : "doc"}-${tag}-card.png`, fullPage: true });
     await p.goto(URL + '#method');
     const sw = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     if (sw > 0) errs.push(`[${tag}] горизонтальная прокрутка ${sw}px`);
