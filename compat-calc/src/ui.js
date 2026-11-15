@@ -25,20 +25,6 @@ const PARAMS = {
 };
 const ROUTE_N = { oral: 'внутрь', oral_sl: 'внутрь / под язык', sl: 'сублингвально / трансбуккально', nasal: 'интраназально', topical: 'наружно', td: 'трансдермально', rectal: 'ректально', vaginal: 'вагинально' };
 
-const EXAMPLES = [
-  { n: 'НАДН + витамин C', form: 'drops', P: {}, items: [['nadh', 10], ['vitc', 100]] },
-  { n: 'Медь + NAC + витамин C', form: 'drops', P: { vdose: 2 }, items: [['cubis', 2], ['nac', 100], ['vitc', 100]] },
-  { n: 'L-лизин на лактозе', form: 'caps', P: { filler: 'lactose' }, items: [['lys', 500]] },
-  { n: 'Тадалафил + L-аргинин', form: 'troche', P: {}, items: [['tadalafil', 5], ['arg', 500]] },
-  { n: 'Синефрин + мелатонин', form: 'caps', P: {}, items: [['synephrine', 30], ['melatonin', 3]] },
-  { n: 'Куркумин + пиперин', form: 'caps', P: {}, items: [['curcumin', 500], ['piperine', 10]] },
-  { n: 'Железо + витамин C + кальций', form: 'caps', P: {}, items: [['fefum', 60], ['vitc', 200], ['cacit', 300]] },
-  { n: 'D3 + K2 + токоферол', form: 'oildr', P: {}, items: [['vitd3', 2000, 'МЕ'], ['vitk2', 100, 'мкг'], ['tocoph', 1]] },
-  { n: 'НМН + TMG + ресвератрол', form: 'caps', P: {}, items: [['nmn', 250], ['tmg', 250], ['resv', 150]] },
-  { n: 'Окситоцин + NaCl', form: 'nasal', P: {}, items: [['oxytocin', 24, 'МЕ'], ['nacl', 1.6]] },
-  { n: 'Прогестерон', form: 'td', P: {}, items: [['prog', 50]] },
-  { n: 'Берберин в карбомерном геле', form: 'gel', P: { gelling: 'carbomer' }, items: [['berberine', 20]] }
-];
 
 /* ---------- Иконки ---------- */
 const I = {
@@ -72,10 +58,18 @@ const fico = k => `<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" st
 function sevBadge(s, label) { const S = s === 'ok' ? { k: 'ok', t: 'Совместимо' } : SEV[s]; return `<span class="sev ${S.k}">${I[S.k]}${label || S.t}</span>`; }
 
 /* ---------- Состояние ---------- */
+// T — заказ в терминах конструктора сайта; S — состав для движка (выводится из T)
+let T = { code: 'КП', items: [], Pov: {}, unlim: false, th: 0, cat: 0, q: '' };
 let S = { form: 'caps', P: Object.assign({}, FORM_DEFAULTS.caps), items: [] };
 let FILT = 'all', TAB = 'recipe', CUR_MOL = null, LAST = null, LAST_SPLIT = null;
-function save() { try { localStorage.setItem('cc_recipe', JSON.stringify(S)); } catch (e) {} }
-function restore() { try { const s = JSON.parse(localStorage.getItem('cc_recipe') || 'null'); if (s && FORMS[s.form] && Array.isArray(s.items)) { S = s; S.items = S.items.filter(i => BY[i.id]); S.P = Object.assign({}, FORM_DEFAULTS[S.form], S.P); } } catch (e) {} }
+function save() { try { localStorage.setItem('cc_tech2', JSON.stringify(T)); } catch (e) {} }
+function restore() { try { const s = JSON.parse(localStorage.getItem('cc_tech2') || 'null'); if (s && SFORM[s.code] && Array.isArray(s.items)) T = Object.assign(T, s, { items: s.items.filter(it => SITE.mols[it.n]), q: '' }); } catch (e) {} }
+const availIn = (n, code) => !!siteDose(n, code);
+function syncS() {
+  const e = engineFor(T.code), live = T.items.filter(it => availIn(it.n, T.code));
+  const ei = engineItems(live, T.code);
+  S = { form: e.form, P: engineP(T.code, ei, T.Pov[e.form]), items: ei };
+}
 
 /* ---------- Поиск ---------- */
 const norm = s => String(s || '').toLowerCase().replace(/ё/g, 'е');
@@ -164,10 +158,9 @@ function bindSearch(wrap, onPick, opt = {}) {
   document.addEventListener('touchstart', e => { if (open && !wrap.contains(e.target)) close(); }, { passive: true });
 }
 
-/* ---------- Ввод рецептуры ---------- */
-function renderForms() {
-  $('#forms').innerHTML = Object.entries(FORMS).map(([k, F]) => `<button type="button" class="fbtn" data-f="${k}" aria-pressed="${k === S.form}">${fico(F.ico)}<span>${esc(F.n)}</span></button>`).join('');
-  $('#formRoute').textContent = ROUTE_N[FORMS[S.form].route] || '';
+/* ---------- Конструктор (как на сайте) ---------- */
+function renderParams() {
+  $('#formRoute').textContent = (FORMS[S.form] ? FORMS[S.form].n : '') + (SFORM[T.code].engine === 'gummy' ? ' — расчёт как глицерин-желатиновое троше' : '');
   const keys = Object.keys(FORM_DEFAULTS[S.form]).filter(k => !(k === 'cpct' && (S.P.cosolv || 'none') === 'none'));
   $('#params').innerHTML = keys.map(k => {
     const d = PARAMS[k]; if (!d) return '';
@@ -176,51 +169,104 @@ function renderForms() {
       const o = typeof d.o === 'function' ? d.o(S.form) : d.o;
       return `<div class="fld"><label for="p_${k}">${d.l}</label><div class="in"><select id="p_${k}" data-p="${k}">${Object.entries(o).map(([a, b]) => `<option value="${a}"${String(a) === String(v) ? ' selected' : ''}>${b}</option>`).join('')}</select></div></div>`;
     }
-    return `<div class="fld"><label for="p_${k}">${d.l}</label><div class="in"><input id="p_${k}" data-p="${k}" type="number" inputmode="decimal" min="0" step="${d.step || 'any'}" value="${v}"><span class="u">${d.u || ''}</span></div></div>`;
+    return `<div class="fld"><label for="p_${k}">${d.l}</label><div class="in"><input id="p_${k}" data-p="${k}" type="number" inputmode="decimal" min="0" step="${d.step || 'any'}" value="${+(+v).toFixed(3)}"><span class="u">${d.u || ''}</span></div></div>`;
   }).join('');
 }
+function thList(code) { return SITE.tree.map((t, i) => ({ i, t, n: t.cats.reduce((a, c) => a + c.mols.filter(m => availIn(m, code)).length, 0) })).filter(x => x.n); }
+const maxOf = d => d.max * (T.unlim ? 2 : 1);
+function stepOf(d) { const m = maxOf(d); return m <= 1 ? 0.01 : m <= 10 ? 0.1 : m <= 100 ? 0.5 : m <= 1000 ? 5 : 50; }
+const SOLO = new Map();
+function soloStatus(n, code) { // проблемы самого вещества в форме (сырьё в профилактической дозе)
+  const ck = code + '|' + n; if (SOLO.has(ck)) return SOLO.get(ck);
+  const d = siteDose(n, code); let r = { lvl: 0, why: [] };
+  if (d) {
+    const e = engineFor(code), ei = engineItems([{ n, amt: d.prof }], code);
+    const res = analyze({ form: e.form, P: engineP(code, ei, T.Pov[e.form]), items: ei });
+    const fs = res.findings.filter(f => f.cat !== 'syn' && f.cat !== 'pharm' && f.sev >= 3);
+    if (fs.length) r = { lvl: fs.some(f => f.sev >= 4) ? 3 : 2, why: fs.slice(0, 2).map(f => ({ l: f.sev >= 4 ? 3 : 2, t: 'в этой форме: ' + f.type.toLowerCase() })) };
+  }
+  SOLO.set(ck, r); return r;
+}
+const techSyn = (A, B) => PAIR_RULES.filter(R => R.cat === 'syn' && ((matchSel(A, R.a) && matchSel(B, R.b)) || (matchSel(B, R.a) && matchSel(A, R.b)))).map(R => ({ type: R.type }));
+function candStatus(n) {
+  let lvl = 0; const why = [];
+  T.items.filter(it => it.n !== n && availIn(it.n, T.code)).forEach(o => { const p = sitePairStatus(n, o.n, T.code, { syn: techSyn }); if (p.lvl) { lvl = Math.max(lvl, p.lvl); p.why.forEach(w => why.push(Object.assign({ with: o.n }, w))); } });
+  const so = soloStatus(n, T.code); if (so.lvl) { lvl = Math.max(lvl, so.lvl); so.why.forEach(w => why.push(w)); }
+  return { lvl, why };
+}
+function statusHTML(n) {
+  const st = candStatus(n); const L = LVL[st.lvl]; if (!L) return '';
+  const why = st.why.filter(w => w.l === st.lvl || st.lvl === 1).slice(0, 5).map(w => (w.with ? w.with + ' — ' : '') + w.t).join('\n');
+  return `<span class="mst ${L.k}" data-t="${esc(L.t[0].toUpperCase() + L.t.slice(1) + ':\n' + why)}">${L.t}</span>`;
+}
+function molBtn(n, showPath) {
+  const k = T.items.findIndex(it => it.n === n);
+  const p = showPath && SITE_PATH[n] ? `<span class="mpath">${esc(SITE_PATH[n][0][1])}</span>` : '';
+  return `<button type="button" class="mbtn${k >= 0 ? ' on' : ''}" data-sn="${esc(n)}">${k >= 0 ? `<span class="mnum">${k + 1}</span>` : ''}<span class="mname">${esc(n)}${p}</span>${statusHTML(n)}</button>`;
+}
+function renderCtor() {
+  $('#ftiles').innerHTML = SITE.forms.map(f => `<button type="button" class="ftile" data-form="${f.code}" aria-pressed="${f.code === T.code}">${fico(FORM_ICO[f.code])}<span><b>${f.code}</b> ${esc(f.n)}</span></button>`).join('');
+  $('#unlim').checked = !!T.unlim;
+  const ths = thList(T.code); if (!ths.some(x => x.i === T.th) && ths.length) T.th = ths[0].i;
+  const TH = SITE.tree[T.th];
+  const cats = TH.cats.map((c, i) => ({ i, c, n: c.mols.filter(m => availIn(m, T.code)).length })).filter(x => x.n);
+  if (!cats.some(x => x.i === T.cat) && cats.length) T.cat = cats[0].i;
+  $('#colTh').innerHTML = ths.map(x => `<button type="button" class="cbtn" data-th="${x.i}" aria-pressed="${x.i === T.th && !T.q}">${esc(x.t.n.replace(/^Вне дерева.*$/, 'Только через поиск'))}<span class="cn">${x.n}</span></button>`).join('');
+  $('#colCat').innerHTML = cats.map(x => `<button type="button" class="cbtn" data-cat="${x.i}" aria-pressed="${x.i === T.cat && !T.q}">${esc(x.c.n)}<span class="cn">${x.n}</span></button>`).join('');
+  if (T.q) {
+    const r = siteSearchCore(T.q, T.code, norm, tokens);
+    $('#colMolH').textContent = 'Найдено: ' + r.length;
+    $('#colMol').innerHTML = r.length ? r.map(n => molBtn(n, true)).join('') : '<div class="empty">Нет в форме «' + esc(SFORM[T.code].n) + '»</div>';
+  } else {
+    const C = TH.cats[T.cat]; $('#colMolH').textContent = '3. Молекула';
+    $('#colMol').innerHTML = (C ? C.mols.filter(m => availIn(m, T.code)) : []).map(n => molBtn(n)).join('');
+  }
+}
+function zoneBar(d, amt) {
+  const M = maxOf(d), pct = v => Math.min(100, v / M * 100), b1 = (d.sub + d.prof) / 2, b2 = (d.prof + d.ther) / 2;
+  return `<div class="zbar"><i class="z1" style="width:${pct(b1)}%"></i><i class="z2" style="left:${pct(b1)}%;width:${pct(b2) - pct(b1)}%"></i><i class="z3" style="left:${pct(b2)}%;width:${pct(d.max) - pct(b2)}%"></i>${T.unlim ? `<i class="z4" style="left:${pct(d.max)}%;width:${100 - pct(d.max)}%"></i>` : ''}<b style="left:${pct(amt)}%"></b></div>`;
+}
 function renderItems(res) {
-  const st = {}; if (res) res.rows.forEach(r => { st[r.k] = r; });
-  $('#itemCount').textContent = S.items.length ? S.items.length + ' ' + plural(S.items.length, 'вещество', 'вещества', 'веществ') : '';
-  $('#items').innerHTML = S.items.length ? S.items.map((it, k) => {
-    const m = BY[it.id]; const r = st[k];
+  const byN = {}; if (res) res.rows.forEach((r, i) => { if (S.items[i]) byN[S.items[i].n] = r; });
+  $('#clearBtn').hidden = !T.items.length;
+  $('#items').innerHTML = T.items.length ? T.items.map((it, k) => {
+    const id = sid(it.n), d = siteDose(it.n, T.code);
+    if (!d) return `<div class="dcard off"><div class="dh"><span class="mnum">${k + 1}</span><b>${esc(it.n)}</b><button type="button" class="rm" data-rmn="${esc(it.n)}" aria-label="Удалить">✕</button></div><div class="muted small">Нет в форме «${esc(SFORM[T.code].n)}» — не учитывается.</div></div>`;
+    const z = zoneOf(+it.amt, d), u = UNIT_N[d.u] || d.u, r = byN[it.n];
     const meta = [];
-    if (r && r.status) meta.push(`<span class="tag ${r.status === 'раствор' ? 'sol' : r.status === 'взвесь' ? 'susp' : ''}">${r.status}</span>`);
-    if (r && r.unit !== 'мг' && r.mg) meta.push(`<span class="mono">${fmtMg(r.mg)}</span>`);
-    if (m.kind === 'excipient') meta.push('<span>вспомогательное</span>');
-    else meta.push(`<span>${esc(m.cat)}</span>`);
-    return `<div class="item${m.kind === 'excipient' ? ' ex' : ''}" data-k="${k}">
-      <div class="nm"><button type="button" data-mol="${m.id}" title="Карточка вещества">${esc(m.ru)}</button><div class="meta">${meta.join('')}</div></div>
-      <input type="number" inputmode="decimal" min="0" step="any" data-a="${k}" value="${it.amt ?? ''}" placeholder="кол-во" aria-label="Количество">
-      <select data-u="${k}" aria-label="Единица">${UNITS.map(u => `<option${u === it.unit ? ' selected' : ''}>${u}</option>`).join('')}</select>
-      <button type="button" class="rm" data-rm="${k}" aria-label="Удалить" title="Удалить">✕</button></div>`;
-  }).join('') : '<div class="empty">Добавьте вещества поиском или загрузите пример</div>';
+    if (r && r.status) meta.push(`<span class="tag ${r.status === 'раствор' ? 'sol' : r.status === 'взвесь' ? 'susp' : ''}">${r.status}${r.status === 'взвесь' && r.dissFrac != null ? ' · ' + fmt(r.dissFrac * 100, 0) + '%' : ''}</span>`);
+    if (!UNIT_ENGINE[d.u]) meta.push('<span class="muted">единицы активности — масса по типичной дозе</span>');
+    return `<div class="dcard"><div class="dh"><span class="mnum">${k + 1}</span><button type="button" class="mlink" data-mol="${id}">${esc(it.n)}</button><button type="button" class="rm" data-rmn="${esc(it.n)}" aria-label="Удалить">✕</button></div>
+      <div class="drow2"><input type="range" min="0" max="${maxOf(d)}" step="${stepOf(d)}" value="${it.amt}" data-amt="${k}" aria-label="Суточная доза">
+      <span class="dval"><input type="number" min="0" max="${maxOf(d)}" step="${stepOf(d)}" value="${it.amt}" data-amtn="${k}" aria-label="Суточная доза"><span class="u">${esc(u)}</span></span></div>
+      ${zoneBar(d, +it.amt)}
+      <div class="dmeta"><span class="zone ${z || ''}">${z ? ZONES[z] : 'доза не указана'}</span><span class="muted">0–${fmt(maxOf(d), 2)} ${esc(u)}${T.unlim ? ' (ограничение снято)' : ''}</span></div>
+      ${meta.length ? `<div class="dmeta" style="justify-content:flex-start">${meta.join('')}</div>` : ''}
+    </div>`;
+  }).join('') : '<div class="empty">Выберите форму, вид терапии, категорию и молекулы</div>';
   const x = res ? res.x : formContext(S.form, S.P);
   $('#implicit').innerHTML = x.implicit.length ? 'Основа и вспомогательные (учитываются в проверке): ' + x.implicit.map(id => `<a href="#card/${id}">${esc(nm(id))}</a>`).join(', ') : '';
 }
 function plural(n, a, b, c) { const d = n % 10, e = n % 100; return d === 1 && e !== 11 ? a : d >= 2 && d <= 4 && (e < 10 || e >= 20) ? b : c; }
-function addItem(m, focusAmt = true) {
-  if (S.items.some(i => i.id === m.id)) { toast(m.ru + ' уже в составе'); return; }
-  const unit = (m.id === 'vitd3') ? 'МЕ' : 'мг';
-  S.items.push({ id: m.id, amt: '', unit });
-  update();
-  if (focusAmt) setTimeout(() => { const inp = document.querySelector(`[data-a="${S.items.length - 1}"]`); inp && inp.focus(); }, 0);
+function addSite(n) {
+  if (!availIn(n, T.code)) { toast(n + ' — нет в форме «' + SFORM[T.code].n + '»'); return; }
+  const i = T.items.findIndex(it => it.n === n);
+  if (i >= 0) { T.items.splice(i, 1); update(); return; }
+  T.items.push({ n, amt: siteDose(n, T.code).prof }); update();
 }
-function setForm(f) { S.form = f; S.P = Object.assign({}, FORM_DEFAULTS[f]); update(true); }
-function loadExample(e) {
-  S = { form: e.form, P: Object.assign({}, FORM_DEFAULTS[e.form], e.P), items: e.items.map(([id, amt, unit]) => ({ id, amt, unit: unit || 'мг' })) };
-  FILT = 'all'; update(true);
-  if (window.innerWidth < 960) $('#out').scrollIntoView({ behavior: 'smooth' });
+function addItem(m) { const n = (SITE_IDS[m.id] || []).find(x => availIn(x, T.code)); if (n) addSite(n); else toast(m.ru + ' — нет в форме «' + SFORM[T.code].n + '» в конструкторе аптеки'); }
+function setForm(code) {
+  T.code = code; T.items.forEach(it => { const d = siteDose(it.n, code); if (d) it.amt = d.prof; });
+  SOLO.clear(); update(true);
 }
 
 /* ---------- Анализ и вывод ---------- */
-function update(full) {
-  save();
-  if (full) renderForms();
+function update(full, keepItems) {
+  save(); syncS(); renderCtor(); renderParams();
   const res = analyze(S);
   LAST = res;
   LAST_SPLIT = suggestSplit(res);
-  renderItems(res);
+  if (!keepItems) renderItems(res);
   renderOut(res, LAST_SPLIT);
 }
 function molLinks(ids) { return [...new Set(ids)].map(id => `<button type="button" data-mol="${id}">${esc(nm(id))}</button>`).join(', '); }
@@ -465,6 +511,7 @@ function fmla(f) { const m = String(f || '').match(/^(.*?)([+-])(\d*)$/); let co
 function renderMethod() {
   $('#method').innerHTML = `
 <h2 style="margin-top:0">Методика расчёта</h2>
+<p>Подбор устроен как конструктор заказов аптеки: форма → вид терапии → категория → молекула; формы, рубрики, доступность в формах и суточные дозы с зонами — из справочника конструктора (15.11.2026). Отметка у молекулы в списке показывает совместимость с уже выбранными ещё до добавления: <b>синергия</b>, <b>осторожно</b> или <b>конфликт</b> (химия и физика в выбранной форме, окна pH, таблица несовместимостей аптеки, фармакология, проблемы самого вещества в форме). Гамми рассчитываются как глицерин-желатиновое троше 3 г. Параметры формы (основа, наполнитель, сорастворитель и т. п.) можно изменить в карточке «Параметры формы».</p>
 <p>Инструмент — поддержка решений для врача. Все значения <b>оценочные</b>: они получены из упрощённых физико-химических моделей и справочных данных и не заменяют экспертизу провизора, пробную партию и испытания стабильности. Дозировки не рекомендуются; количество вводит врач.</p>
 
 <h3>1. pH смеси</h3>
@@ -558,35 +605,54 @@ function route() {
 
 /* ---------- События ---------- */
 function init() {
-  restore();
-  renderForms(); renderMethod();
-  $('#examples').innerHTML = EXAMPLES.map((e, i) => `<button type="button" data-ex="${i}"><span>${esc(e.n)}</span><span class="f">${esc(FORMS[e.form].n)}</span></button>`).join('');
-  bindSearch($('#q').closest('.search'), (m, viaKey) => addItem(m, viaKey), { multi: true, isAdded: id => S.items.some(i => i.id === id) });
+  restore(); renderMethod();
   bindSearch($('#q2').closest('.search'), m => openMol(m.id), { isAdded: id => id === CUR_MOL });
   themeSet(themeGet());
   $('#themeBtn').addEventListener('click', () => { const o = ['auto', 'light', 'dark']; themeSet(o[(o.indexOf(themeGet()) + 1) % 3]); });
-  $('#forms').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b && b.dataset.f !== S.form) setForm(b.dataset.f); });
-  $('#params').addEventListener('change', e => { const k = e.target.dataset.p; if (!k) return; S.P[k] = e.target.tagName === 'SELECT' ? e.target.value : +e.target.value; update(k === 'cosolv'); });
-  $('#params').addEventListener('input', e => { const k = e.target.dataset.p; if (!k || e.target.tagName === 'SELECT') return; S.P[k] = +e.target.value; update(false); });
-  $('#items').addEventListener('input', e => { const a = e.target.dataset.a; if (a != null) { S.items[+a].amt = e.target.value === '' ? '' : +e.target.value; save(); const res = analyze(S); LAST = res; LAST_SPLIT = suggestSplit(res); renderOut(res, LAST_SPLIT); refreshMeta(res); } });
-  $('#items').addEventListener('change', e => { const u = e.target.dataset.u; if (u != null) { S.items[+u].unit = e.target.value; update(); } });
-  $('#items').addEventListener('click', e => { const r = e.target.closest('[data-rm]'); if (r) { S.items.splice(+r.dataset.rm, 1); update(); } });
-  $('#examples').addEventListener('click', e => { const b = e.target.closest('[data-ex]'); if (b) loadExample(EXAMPLES[+b.dataset.ex]); });
-  $('#clearBtn').addEventListener('click', () => { S.items = []; update(); });
+  $('#ftiles').addEventListener('click', e => { const b = e.target.closest('[data-form]'); if (b && b.dataset.form !== T.code) setForm(b.dataset.form); });
+  $('#colTh').addEventListener('click', e => { const b = e.target.closest('[data-th]'); if (!b) return; T.th = +b.dataset.th; T.cat = 0; T.q = ''; $('#q').value = ''; renderCtor(); });
+  $('#colCat').addEventListener('click', e => { const b = e.target.closest('[data-cat]'); if (!b) return; T.cat = +b.dataset.cat; T.q = ''; $('#q').value = ''; renderCtor(); });
+  $('#colMol').addEventListener('click', e => {
+    const st = e.target.closest('.mst'); if (st && matchMedia('(hover: none)').matches) { toast(st.dataset.t.replace(/\n/g, '; ')); return; }
+    const b = e.target.closest('[data-sn]'); if (b) addSite(b.dataset.sn);
+  });
+  $('#q').addEventListener('input', e => { T.q = e.target.value; renderCtor(); });
+  $('#unlim').addEventListener('change', e => { T.unlim = e.target.checked; T.items.forEach(it => { const d = siteDose(it.n, T.code); if (d && it.amt > maxOf(d)) it.amt = maxOf(d); }); update(); });
+  $('#params').addEventListener('change', e => { const k = e.target.dataset.p; if (!k) return; T.Pov[S.form] = Object.assign({}, T.Pov[S.form], { [k]: e.target.tagName === 'SELECT' ? e.target.value : +e.target.value }); SOLO.clear(); PAIR_CACHE.clear(); update(true); });
+  $('#items').addEventListener('click', e => { const r = e.target.closest('[data-rmn]'); if (r) { T.items = T.items.filter(it => it.n !== r.dataset.rmn); update(); } });
+  $('#items').addEventListener('input', e => {
+    const k = e.target.dataset.amt ?? e.target.dataset.amtn; if (k == null) return;
+    const it = T.items[+k], d = siteDose(it.n, T.code); it.amt = Math.max(0, Math.min(maxOf(d), +e.target.value || 0));
+    const card = e.target.closest('.dcard');
+    card.querySelectorAll('[data-amt],[data-amtn]').forEach(x => { if (x !== e.target || +x.value > it.amt) x.value = it.amt; });
+    const z = zoneOf(it.amt, d); const zt = card.querySelector('.zone'); zt.className = 'zone ' + (z || ''); zt.textContent = z ? ZONES[z] : 'доза не указана';
+    card.querySelector('.zbar').outerHTML = zoneBar(d, it.amt);
+    save(); clearTimeout(window._dt); window._dt = setTimeout(() => update(false, true), 300);
+  });
+  $('#clearBtn').addEventListener('click', () => { T.items = []; update(); });
   document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (!b) return; location.hash = b.dataset.tab === 'recipe' ? '' : b.dataset.tab === 'card' ? '#card/' + (CUR_MOL || '') : '#method'; if (b.dataset.tab === 'recipe') route(); });
   document.addEventListener('click', e => {
     const m = e.target.closest('[data-mol]'); if (m) { openMol(m.dataset.mol); return; }
     const f = e.target.closest('[data-filt]'); if (f) { FILT = f.dataset.filt; renderOut(LAST, LAST_SPLIT); return; }
-    const c = e.target.closest('#copyBtn'); if (c) { copyText(reportText(LAST, LAST_SPLIT)); return; }
-    const g = e.target.closest('[data-grp]'); if (g && LAST_SPLIT) { const gr = LAST_SPLIT.groups[+g.dataset.grp]; S = { form: gr.form, P: gr.form === S.form ? S.P : Object.assign({}, FORM_DEFAULTS[gr.form]), items: gr.items.map(i => Object.assign({}, i)) }; FILT = 'all'; update(true); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
-    const a = e.target.closest('[data-addmol]'); if (a) { addItem(BY[a.dataset.addmol], false); location.hash = ''; route(); return; }
+    const c = e.target.closest('#copyBtn'); if (c) { copyText(orderText() + '\n\n' + reportText(LAST, LAST_SPLIT)); return; }
+    const g = e.target.closest('[data-grp]'); if (g && LAST_SPLIT) {
+      const gr = LAST_SPLIT.groups[+g.dataset.grp]; const code = ENGINE_TO_SITE[gr.form] || T.code;
+      T.items = gr.items.filter(i => i.n).map(i => ({ n: i.n, amt: (siteDose(i.n, code) || {}).prof || i.amt })); T.code = code; FILT = 'all'; SOLO.clear(); update(true); window.scrollTo({ top: 0, behavior: 'smooth' }); return;
+    }
+    const a = e.target.closest('[data-addmol]'); if (a) { addItem(BY[a.dataset.addmol]); location.hash = ''; route(); return; }
   });
-  document.addEventListener('mouseover', e => { const t = e.target.closest('[data-tip]'); if (t) showTip(tipHTML(TIPS[+t.dataset.tip]), e); });
-  document.addEventListener('mousemove', e => { const r = e.target.closest && e.target.closest('[data-chart]'); if (r) { chartHover(e, r); return; } if (e.target.closest && e.target.closest('[data-tip]')) moveTip(e); else if (!tip.hidden) hideTip(); });
+  document.addEventListener('mouseover', e => { const t = e.target.closest('[data-tip]'); if (t) { showTip(tipHTML(TIPS[+t.dataset.tip]), e); return; } const d = e.target.closest('[data-t]'); if (d) { tip.textContent = d.dataset.t; tip.hidden = false; moveTip(e); } });
+  document.addEventListener('mousemove', e => { const r = e.target.closest && e.target.closest('[data-chart]'); if (r) { chartHover(e, r); return; } if (e.target.closest && e.target.closest('[data-tip],[data-t]')) moveTip(e); else if (!tip.hidden) hideTip(); });
   document.addEventListener('mouseout', e => { const r = e.target.closest && e.target.closest('[data-chart]'); if (r) { const hov = r.ownerSVGElement.querySelector('.hov'); hov && hov.setAttribute('hidden', ''); hideTip(); } });
   window.addEventListener('hashchange', route);
-  update();
+  update(true);
   route();
+}
+function orderText() {
+  const L = ['ЗАКАЗ: ' + SFORM[T.code].n];
+  T.items.forEach((it, k) => { const d = siteDose(it.n, T.code); L.push(`  ${k + 1}. ${it.n} — ${d ? fmt(+it.amt, 3) + ' ' + (UNIT_N[d.u] || d.u) + '/сут (' + (ZONES[zoneOf(+it.amt, d)] || '—') + ')' : 'нет в этой форме'}`); });
+  if (T.unlim) L.push('  Ограничение на максимальную дозу снято.');
+  return L.join('\n');
 }
 function refreshMeta(res) {
   const st = {}; res.rows.forEach(r => { st[r.k] = r; });
