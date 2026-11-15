@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Подбор рецептур</title>
+<meta name="description" content="Инструменты для индивидуальных рецептур: врачебная версия (синергия, направленность, противопоказания) и версия технолога (совместимость в лекарственной форме).">
+<style>
+/*FONTS*/
+:root { --ni-blue: #153983; --ni-muted: #6D86B6; --ni-green: #62B985; --ni-green-pressed: #4fa774; --bg: #F9F9F9; --surface: #fff; --surface-2: #EEF1F5; --text: #0F1F3A; --text-2: #3A4A66; --border: #E2E8F0; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 'Cera Pro', 'IBM Plex Sans', Arial, sans-serif; }
+main { max-width: 1120px; margin: 0 auto; padding: 56px 20px 40px; }
+h1, h2 { font-family: 'Unbounded', 'IBM Plex Sans', sans-serif; font-weight: 500; color: var(--ni-blue); letter-spacing: -0.02em; margin: 0; }
+h1 { font-size: clamp(30px, 5.5vw, 56px); line-height: 1.05; }
+.lead { color: var(--ni-muted); font-size: clamp(16px, 2.2vw, 22px); margin: 18px 0 40px; max-width: 760px; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.card { background: var(--surface); border-radius: 24px; padding: 30px; box-shadow: 0 8px 24px rgba(15, 31, 58, .06); display: flex; flex-direction: column; gap: 14px; text-decoration: none; color: inherit; transition: transform .15s, box-shadow .15s; }
+.card:hover { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(15, 31, 58, .1); }
+.card h2 { font-size: 24px; }
+.tag { align-self: flex-start; font-size: 13px; color: var(--ni-blue); background: var(--surface-2); border-radius: 999px; padding: 4px 12px; }
+.card ul { margin: 0; padding-left: 18px; color: var(--text-2); }
+.card li { margin: 3px 0; }
+.btn { margin-top: auto; align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; height: 48px; padding: 0 28px; border-radius: 999px; font-size: 17px; text-decoration: none; }
+.btn.primary { background: var(--ni-green); color: #fff; box-shadow: 0 6px 18px rgba(98, 185, 133, .25); }
+.card:hover .btn.primary { background: var(--ni-green-pressed); }
+.btn.outline { border: 2px solid var(--ni-blue); color: var(--ni-blue); }
+.card:hover .btn.outline { background: rgba(21, 57, 131, .06); }
+.foot { margin-top: 36px; color: var(--ni-muted); font-size: 14px; max-width: 820px; }
+@media (max-width: 760px) { main { padding: 32px 16px; } .grid { grid-template-columns: minmax(0, 1fr); } .card { padding: 22px; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Подбор индивидуальных рецептур</h1>
+  <p class="lead">База из {{NACT}} активных веществ: синергия, противопоказания и совместимость в лекарственной форме.</p>
+  <div class="grid">
+    <a class="card" href="vrach/">
+      <span class="tag">Для врача</span>
+      <h2>Подбор состава</h2>
+      <ul>
+        <li>Синергия и подсказки, чем усилить состав</li>
+        <li>Противопоказания по состояниям пациента</li>
+        <li>Взаимодействия и метаболическая нагрузка</li>
+        <li>Лучшие формы доставки и схема приёма</li>
+      </ul>
+      <span class="btn primary">Открыть</span>
+    </a>
+    <a class="card" href="tehnolog/">
+      <span class="tag">Для технолога</span>
+      <h2>Совместимость рецептур</h2>
+      <ul>
+        <li>pH смеси, растворимость, окна стабильности</li>
+        <li>Химические и физические несовместимости</li>
+        <li>Нагрев, влага, свет, загрузка формы</li>
+        <li>Матрица совместимости и разделение на группы</li>
+      </ul>
+      <span class="btn outline">Открыть</span>
+    </a>
+  </div>
+  <p class="foot">Справочная оценка по моделям и литературе. Решение о назначении принимает врач, о приготовлении — провизор.</p>
+</main>
+</body>
+</html>
