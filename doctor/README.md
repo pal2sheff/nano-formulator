@@ -12,5 +12,5 @@
     node test/browser.js          # проверка в Chromium
 
 ## Модуль для сайта nano-identica.com
-`module-ni.html` — та же врачебная версия в стиле сайта (токены `--ni-blue #153983`, `--ni-green #62B985`, фон `#F9F9F9`, серые карточки, кнопки-пилюли; заголовки Unbounded — встроен, OFL; текст Cera Pro — подхватывается со страницы сайта, без него — IBM Plex Sans). Тема фиксирована светлой, как на сайте. Стили темы — `src/ni-theme.css`; собирается тем же `node build.js`.
-Проверка: `PAGE=module-ni.html node test/browser.js`.
+`index.html` собирается сразу в стиле сайта (токены `--ni-blue #153983`, `--ni-green #62B985`, фон `#F9F9F9`, серые карточки, кнопки-пилюли; заголовки Unbounded — встроен, OFL; текст Cera Pro — подхватывается со страницы сайта, без него — IBM Plex Sans). Тема фиксирована светлой, как на сайте. Стили темы — `src/ni-theme.css`; собирается тем же `node build.js`.
+Проверка: `node test/browser.js`.

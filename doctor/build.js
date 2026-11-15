@@ -27,9 +27,9 @@ function make(theme) {
     tpl = tpl.replace('<html lang="ru">', '<html lang="ru" data-theme="light">').replace(/<script>try \{ var t = localStorage[\s\S]*?<\/script>\n/, '');
   }
   const html = tpl.replace('/*STYLE*/', () => style).replace('/*DB*/', () => db).replace('/*JS*/', () => js + (theme === 'ni' ? '\n;document.documentElement.setAttribute("data-theme","light");' : ''));
-  const out = theme === 'ni' ? 'module-ni.html' : 'index.html';
+  const out = 'index.html';
   fs.writeFileSync(R(out), html);
   console.log(out, (html.length / 1024).toFixed(0) + ' КБ');
 }
-make('base');
+// основная сборка — сразу в фирменном стиле сайта nano-identica.com
 make('ni');
