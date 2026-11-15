@@ -3,22 +3,23 @@
 
 /* ---------- Направленность ---------- */
 const DIRS = {
-  energy:  { n: 'Энергия и митохондрии', ids: 'nad nadh nadp nmn nmnh nr nam amp akg coq10 pqq ala alcar lcar cabhb thiamine benfo pantoth b15 motsc shilajit ginseng eleuthero rhodiola schisandra yerba asp ipamorelin b2 succinic' },
-  neuro:   { n: 'Мозг, память, внимание', ids: 'agpc citicoline uridine ump dha lionsmane bacopa ginkgo semax tyr ldopa mucuna alcar pqq mecbl cncbl benfo carnosine luteolin preg mgthr saffron sflecithin' },
+  energy:  { n: 'Энергия и митохондрии', ids: 'nad nadh nadp nmn nmnh nr nam amp akg coq10 pqq ala alcar lcar cabhb thiamine benfo pantoth b15 motsc shilajit ginseng eleuthero rhodiola schisandra yerba asp ipamorelin b2 succinic methblue betaala' },
+  neuro:   { n: 'Мозг, память, внимание', ids: 'agpc citicoline uridine ump dha lionsmane bacopa ginkgo semax tyr ldopa mucuna alcar pqq mecbl cncbl benfo carnosine luteolin preg mgthr saffron sflecithin methblue dihexa' },
   sleep:   { n: 'Сон, стресс, настроение', ids: 'melatonin gaba theanine glycine htp same selank dsip apigenin hops ashwagandha tulsi rhodiola mgbis mgtaur mgcit taurine cherry inositol prog oxytocin chamomile mgthr saffron' },
   vessels: { n: 'Сосуды, кровоток, NO', ids: 'arg cit citmal tadalafil pycno grapeseed ginkgo nattokinase diosmin citrus epimedium niacin horsechest garlic' },
-  heart:   { n: 'Сердце и липиды', ids: 'coq10 dha sterols berberine niacin oryzanol taurine mgorot mgtaur vitk2 artichoke resv htyr oleuropein pomegranate lycopene betaglucan psyllium lcar garlic sflecithin' },
+  heart:   { n: 'Сердце и липиды', ids: 'coq10 dha sterols berberine niacin oryzanol taurine mgorot mgtaur vitk2 artichoke resv htyr oleuropein pomegranate lycopene betaglucan psyllium lcar garlic sflecithin betaala' },
   glucose: { n: 'Углеводный обмен и вес', ids: 'metformin sitagliptin semaglutide tirzepatide berberine bittermelon gymnema galega cinnamon opuntia mangiferin cga inositol dci crpic ala fenugreek yerba synephrine fucox keto7 cabhb akkermansia pterost motsc garcinia okra aloe' },
   antiox:  { n: 'Антиоксиданты и антиэйдж', ids: 'gsh sag gsh_lipo nac ergo astax htyr ferulic c60 quercetin fisetin egcg dhq curcumin curc_mic thc pterost resv polygonum vitc vitc_lipo vite sod catalase gpx myricetin rosemary pomegranate roxpear carnosine trehalose spermidine epitalon phycocyanin sulforaphane nmn lycopene resv_lipo curc_lipo astax_lipo cornflower' },
-  inflam:  { n: 'Противовоспалительное', ids: 'curcumin curc_mic boswellia pea dha quercetin luteolin bromelain ginger andrographolide cape apigenin ursolic oleanolic phycocyanin spirulina cherry catsclaw serrapeptase calendula chamomile plantain aucubin bpc157 curc_lipo' },
+  inflam:  { n: 'Противовоспалительное', ids: 'curcumin curc_mic boswellia pea dha quercetin luteolin bromelain ginger andrographolide cape apigenin ursolic oleanolic phycocyanin spirulina cherry catsclaw serrapeptase calendula chamomile plantain aucubin bpc157 curc_lipo tb500 eugenol' },
   liver:   { n: 'Печень, желчь, детокс', ids: 'silymarin phospholip nac gsh sag gsh_lipo tudca udca artichoke dandelion sulforaphane tmg schisandra glycyrrhizin orn gardenia same celandine aucubin sflecithin sily_lipo' },
-  gut:     { n: 'ЖКТ и микробиом', ids: 'pancrelipase amylase lactase cellulase maltdiast phytase papain bromelain akkermansia inulin psyllium fig flax betainehcl gentian ginger tannins lionsmane glycyrrhizin protease xylanase agal invertase glucoamylase hemicellulase aloe slipelm marshmallow okra plantain chamomile calendula arabinogalactan nag butyrate bpc157' },
+  gut:     { n: 'ЖКТ и микробиом', ids: 'pancrelipase amylase lactase cellulase maltdiast phytase papain bromelain akkermansia inulin psyllium fig flax betainehcl gentian ginger tannins lionsmane glycyrrhizin protease xylanase agal invertase glucoamylase hemicellulase aloe slipelm marshmallow okra plantain chamomile calendula arabinogalactan nag butyrate bpc157 eugenol' },
   immune:  { n: 'Иммунитет', ids: 'vitc vitc_lipo vitd3 znbis znpic zngluc segly semet betaglucan astragalus catsclaw andrographolide spirulina lys retinol arabinogalactan garlic' },
-  joints:  { n: 'Суставы, кости, кожа', ids: 'glucosamine chondroitin hyaluronate boswellia cacit camal vitd3 vitk2 boron pea biotin astax same ipamorelin bpc157 nag serrapeptase' },
+  joints:  { n: 'Суставы, кости, кожа', ids: 'glucosamine chondroitin hyaluronate boswellia cacit camal vitd3 vitk2 boron pea biotin astax same ipamorelin bpc157 nag serrapeptase tb500 ghkcu sio2' },
   male:    { n: 'Мужское здоровье', ids: 'testo dhea daa tongkat fadogia tribulus fenugreek safedmusli damiana epimedium sawpalm pygeum pumpkin nettle chrysin anastrozole tadalafil pt141 boron znpic' },
   female:  { n: 'Женское здоровье', ids: 'e2 e3 prog redclover soy genistein formononetin hops dim i3c inositol dci flax cagluc diosgenin pt141 dhea' },
   thyroid: { n: 'Щитовидная железа', ids: 'ki segly semet tyr ashwagandha' },
   blood:   { n: 'Кроветворение и метилирование', ids: 'fefum mecbl cncbl mthf folic pyridox p5p tmg same cubis febis b2' },
+  urinary: { n: 'Мочевыводящие пути', ids: 'dmannose cherry' },
   eyes:    { n: 'Зрение', ids: 'lutein astax dha retinol cornflower astax_lipo b2' }
 };
 const DIR_OF = {};
@@ -32,8 +33,8 @@ function timing(m) {
   const T = m.T, id = m.base || m.id;
   let slot = 'any', food = null;
   const morning = T.has('stimulant') || T.has('sympath') || T.has('caffeine') || T.has('thermogenic') || T.has('stimulant_mild') ||
-    ['tyr', 'nmn', 'nr', 'nad', 'nadh', 'nmnh', 'alcar', 'dhea', 'preg', 'testo', 'mecbl', 'cncbl', 'pqq', 'semax', 'keto7', 'b15', 'succinic', 'b2', 'garcinia'].includes(id);
-  const evening = T.has('sedative') || T.has('hormone_sleep') || T.has('sedative_mild') || ['mgbis', 'mgtaur', 'mgcit', 'mgthr', 'prog', 'ashwagandha', 'dsip', 'cherry', 'chamomile', 'saffron'].includes(id);
+    ['tyr', 'nmn', 'nr', 'nad', 'nadh', 'nmnh', 'alcar', 'dhea', 'preg', 'testo', 'mecbl', 'cncbl', 'pqq', 'semax', 'keto7', 'b15', 'succinic', 'b2', 'garcinia', 'methblue', 'dihexa', 'betaala'].includes(id);
+  const evening = T.has('sedative') || T.has('hormone_sleep') || T.has('sedative_mild') || ['mgbis', 'mgtaur', 'mgcit', 'mgthr', 'dsip', 'prog', 'ashwagandha', 'dsip', 'cherry', 'chamomile', 'saffron'].includes(id);
   if (evening && !T.has('stimulant')) slot = 'evening'; else if (morning) slot = 'morning';
   if (T.has('ldopa') || ['htp', 'tyr', 'synephrine', 'akkermansia', 'nmn', 'nr'].includes(id)) food = 'empty';
   if (T.has('lipo') || T.has('fatvit') || T.has('carotenoid') || ['coq10', 'curcumin', 'dha', 'sterols', 'berberine', 'metformin', 'betainehcl', 'cinnamon', 'crpic', 'pea', 'boswellia', 'curc_mic'].includes(id) ||
@@ -71,7 +72,7 @@ const COND_N = Object.fromEntries(CONDITIONS.map(c => [c.k, c.n]));
 /* ---------- Противопоказания и предостережения ----------
  * sev: 3 — противопоказано, 2 — с осторожностью, 1 — учесть.
  * sel: тег, 'id:...' или функция; t — пояснение для врача. */
-const PREG_OK = new Set('febis mgthr b2 folic mthf mecbl cncbl pyridox p5p vitd3 vitc ki fefum cacit camal mgcit mgbis mgtaur mgorot znbis znpic zngluc dha inositol glycine lactase pancrelipase psyllium inulin choline'.split(' '));
+const PREG_OK = new Set('dmannose febis mgthr b2 folic mthf mecbl cncbl pyridox p5p vitd3 vitc ki fefum cacit camal mgcit mgbis mgtaur mgorot znbis znpic zngluc dha inositol glycine lactase pancrelipase psyllium inulin choline'.split(' '));
 const CONTRA = [
   // беременность
   { c: 'preg', sev: 3, sel: m => m.T.has('hormone') || m.T.has('androgen') || m.T.has('estrogen') || m.T.has('progestogen') || m.T.has('ai') || m.T.has('antiestro') || m.T.has('estrogenprec'), t: 'Гормональный препарат: при беременности и лактации не назначается вне показаний специалиста.' },
@@ -80,6 +81,7 @@ const CONTRA = [
   { c: 'preg', sev: 3, sel: ['mineralocort', 'id:ashwagandha', 'id:andrographolide', 'id:fenugreek', 'id:tribulus', 'id:tongkat', 'id:fadogia', 'id:mucuna', 'id:ldopa', 'sympath', 'phytoestrogen', 'estromet', 'id:oxytocin', 'id:pt141'], t: 'Не рекомендуется при беременности: гормональное, утеротоническое или стимулирующее действие либо нет данных о безопасности.' },
   { c: 'preg', sev: 2, sel: m => !PREG_OK.has(m.id), t: 'Данных о безопасности при беременности и лактации недостаточно.', fallback: true },
   { c: 'preg', sev: 3, sel: ['id:celandine', 'id:saffron', 'id:garcinia', 'id:bpc157', 'id:horsechest', 'id:aloe', 'id:calendula'], t: 'Не применять при беременности и лактации (гепатотоксичность, утеротоническое действие или нет данных о безопасности).' },
+  { c: 'preg', sev: 3, sel: ['id:methblue', 'id:tb500', 'id:dihexa', 'id:ghkcu', 'id:eugenol'], t: 'Нет данных о безопасности при беременности или известен риск — не назначать.' },
   // кровотечения
   { c: 'anticoag', sev: 2, sel: ['id:serrapeptase', 'id:horsechest', 'id:garlic'], t: 'Может усиливать кровоточивость с антикоагулянтами и антиагрегантами; отменить за 1–2 недели до операции.' },
   { c: 'anticoag', sev: 3, sel: ['fibrinolytic'], t: 'Фибринолитик: с антикоагулянтами и перед операцией — риск кровотечения.' },
@@ -108,7 +110,10 @@ const CONTRA = [
   { c: 'psych', sev: 3, sel: ['serotonergic_mild', 'serotonergic'], t: 'Может провоцировать маниакальную фазу.' },
   { c: 'psych', sev: 2, sel: ['stimulant', 'sympath', 'dopaminergic', 'id:tyr', 'id:rhodiola'], t: 'Стимулирующее / дофаминергическое действие — возможна дестабилизация.' },
   { c: 'ssri', sev: 2, sel: ['id:saffron', 'id:garcinia'], t: 'Возможное усиление серотонинергического действия с СИОЗС (шафран — по механизму, гарциния — единичные случаи).' },
+  { c: 'ssri', sev: 3, sel: ['id:methblue'], t: 'Метиленовый синий — ингибитор МАО-А: с СИОЗС/СИОЗСН и триптанами — серотониновый синдром (предупреждение FDA).' },
   // онкология
+  { c: 'hormcancer', sev: 3, sel: ['id:dihexa'], t: 'Dihexa потенцирует HGF/c-Met — путь, связанный с ростом опухолей.' },
+  { c: 'hormcancer', sev: 2, sel: ['id:tb500'], t: 'TB-500 стимулирует ангиогенез — при опухолях не назначать без онколога.' },
   { c: 'hormcancer', sev: 2, sel: ['id:bpc157'], t: 'BPC-157 стимулирует ангиогенез и рост тканей — при опухолях (в т. ч. в анамнезе) не назначать без онколога.' },
   { c: 'hormcancer', sev: 3, sel: m => m.T.has('estrogen') || m.T.has('androgen') || m.T.has('estrogenprec') || m.T.has('progestogen') || m.id === 'preg', t: 'Гормон или его предшественник: противопоказан при гормонозависимых опухолях.' },
   { c: 'hormcancer', sev: 2, sel: ['phytoestrogen', 'hpgboost', 'id:ipamorelin'], t: 'Фитоэстроген / стимулятор гормональной оси (для ипаморелина — ось ГР/ИФР-1).' },
@@ -130,6 +135,9 @@ const CONTRA = [
   { c: 'kidney', sev: 2, sel: ['vitc'], t: 'Высокие дозы витамина C повышают экскрецию оксалатов — риск оксалатных камней.' },
   { c: 'kidney', sev: 2, sel: ['mineralocort', 'id:sitagliptin', 'id:crpic'], t: 'Требуется коррекция или осторожность при сниженной функции почек.' },
   { c: 'kidney', sev: 2, sel: ['id:horsechest'], t: 'Эсцин в высоких дозах нефротоксичен — осторожно при ХБП.' },
+  { c: 'kidney', sev: 2, sel: ['id:methblue'], t: 'Выводится почками — при выраженной ХБП накапливается.' },
+  { c: 'liver', sev: 2, sel: ['id:eugenol'], t: 'Эвгенол в высоких дозах гепатотоксичен.' },
+  { c: 'diab', sev: 1, sel: ['id:dmannose'], t: 'D-манноза — сахар (частично метаболизируется), учитывать при подсчёте углеводов.' },
   // иммунитет
   { c: 'autoimmune', sev: 2, sel: ['immunostim'], t: 'Иммуностимулирующее действие — может обострять аутоиммунный процесс или ослаблять иммуносупрессию.' },
   // прочее
@@ -149,7 +157,8 @@ const GENERAL_NOTES = [
   { tag: 'teratogen', t: 'Тератогенен в высоких дозах.' },
   { tag: 'mineralocort', t: 'Длительный приём: задержка натрия, гипокалиемия, повышение давления.' },
   { tag: 'labinterf', t: 'Искажает иммуноанализы (ТТГ, тропонин, гормоны) — отменить за 2–3 дня до анализов.' },
-  { tag: 'b12depl', t: 'Длительный приём снижает уровень B12 — контроль или добавление B12.' }
+  { tag: 'b12depl', t: 'Длительный приём снижает уровень B12 — контроль или добавление B12.' },
+  { tag: 'oxidant', t: '', id: 'methblue', tx: 'Противопоказан при дефиците глюкозо-6-фосфатдегидрогеназы (гемолиз); окрашивает мочу в синий.' }
 ];
 
 /* синергии и правила, которые в врачебной версии не нужны (технологические) */
@@ -220,6 +229,11 @@ const DOC_SYN = [
   { a: ['id:garlic'], b: ['id:dha', 'id:sterols', 'id:coq10'], type: 'Липидный профиль и сосуды', t: 'Чеснок снижает агрегацию и давление, омега-3 и стеролы — триглицериды и ЛПНП: дополняющие механизмы (следить за суммарной кровоточивостью).' },
   { a: ['id:saffron'], b: ['id:curcumin', 'id:mgthr', 'id:mgbis'], type: 'Настроение', t: 'Шафран и куркумин (или магний) улучшали показатели депрессии в РКИ в комбинации.' },
   { a: ['id:aucubin'], b: ['id:silymarin', 'id:nac', 'id:sflecithin'], type: 'Печень', t: 'Гепатопротекция разными механизмами (противовоспалительное, антиоксидант, мембраны).' },
+  { a: ['id:methblue'], b: ['id:coq10', 'id:nmn', 'id:nr', 'id:alcar'], type: 'Митохондриальная поддержка', t: 'Метиленовый синий шунтирует перенос электронов в дыхательной цепи, остальные компоненты дают субстрат и переносчики.' },
+  { a: ['id:betaala'], b: ['id:carnosine', 'id:cit', 'id:citmal'], type: 'Выносливость', t: 'Бета-аланин повышает карнозин мышц (буфер), цитруллин — кровоток при нагрузке.' },
+  { a: ['id:dmannose'], b: ['id:cherry', 'id:vitc', 'id:akkermansia'], type: 'Мочевыводящие пути', t: 'D-манноза блокирует адгезию E. coli, клюквенно-вишнёвые полифенолы и витамин C дополняют защиту уротелия.' },
+  { a: ['id:ghkcu'], b: ['id:hyaluronate', 'id:nag'], type: 'Кожа', t: 'GHK-Cu стимулирует синтез коллагена, гиалуронат и NAG — матрикс кожи.' },
+  { a: ['id:tb500'], b: ['id:bpc157'], type: 'Регенерация', t: 'Комбинация «Wolverine stack»: разные механизмы заживления (доклинические данные).' },
   { a: ['id:theanine'], b: ['id:tyr'], type: 'Концентрация', t: 'Тирозин поддерживает дофамин под нагрузкой, теанин снимает напряжение.' }
 ];
 

@@ -24,7 +24,7 @@ const DOC_SEV = { 3: { k: 'major', t: 'Серьёзно' }, 2: { k: 'mod', t: '�
 const CONTRA_SEV = { 3: { k: 'crit', t: 'Противопоказано' }, 2: { k: 'mod', t: 'С осторожностью' }, 1: { k: 'minor', t: 'Учесть' } };
 
 function analyzeDoc(ids, cond = []) {
-  ids = [...new Set(ids)].filter(id => BY[id] && BY[id].kind !== 'excipient');
+  ids = [...new Set(ids)].filter(id => BY[id] && (BY[id].kind !== 'excipient' || (typeof SITE_IDS !== 'undefined' && SITE_IDS[id])));
   const ms = ids.map(id => BY[id]);
   const condSet = new Set(cond);
   const inter = [], syn = [];
@@ -79,7 +79,7 @@ function analyzeDoc(ids, cond = []) {
 
   // общие предостережения
   const notes = [];
-  ms.forEach(m => GENERAL_NOTES.forEach(n => { if (m.T.has(n.tag)) notes.push({ id: m.id, t: n.t }); }));
+  ms.forEach(m => GENERAL_NOTES.forEach(n => { if (n.id ? m.id === n.id : m.T.has(n.tag)) notes.push({ id: m.id, t: n.tx || n.t }); }));
 
   // схема приёма
   const tim = {}; ms.forEach(m => { tim[m.id] = timing(m); });

@@ -5,7 +5,7 @@
 
 const DOC_FORMS = ['caps', 'powder', 'drops', 'hydro', 'oildr', 'slspray', 'troche', 'gummy', 'nasal', 'cream', 'td', 'gel', 'oint', 'supp', 'vag'];
 const GUMMY = { n: 'Мармелад (gummies)', bases: { pectin: { n: 'пектиновая основа', acid: true }, gelatin: { n: 'желатиновая основа', acid: false } }, mass: 3 };
-const formName = f => f === 'gummy' ? GUMMY.n : FORMS[f].n;
+const formName = f => f === 'gummy' ? GUMMY.n : FORMS[f] ? FORMS[f].n : (typeof SFORM !== 'undefined' && SFORM[f]) ? SFORM[f].n : f;
 const RATING = {
   best: { k: 'ok', t: 'Предпочтительно', o: 0 },
   ok: { k: 'minor', t: 'Можно', o: 1 },

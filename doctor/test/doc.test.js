@@ -151,9 +151,37 @@ test('Формы: BPC-157 — назально/сублингвально пре
   const r = F('bpc157'); assert.ok(['best', 'ok'].includes(rate(r, 'nasal')));
   assert.notEqual(rate(F('butyrate'), 'supp'), 'na');
 });
-test('Все 255 активных веществ имеют направленность (кроме b14/пиперина) и данные метаболизма', () => {
+test('Все активные вещества имеют направленность (кроме b14/пиперина) и данные метаболизма', () => {
   const act = Object.values(A.BY).filter(m => m.kind !== 'excipient');
-  assert.equal(act.length, 255);
+  assert.equal(act.length, 262);
   assert.deepEqual(act.filter(m => !A.DIR_OF[m.id]).map(m => m.id).sort(), ['b14', 'piperine']);
   assert.ok(act.every(m => A.PK[m.id]));
+});
+
+/* ---------- Конструктор как на сайте ---------- */
+const st = (form, names, cond = []) => ({ form, items: names.map(n => ({ n, amt: A.siteDose(n, form) ? A.siteDose(n, form).prof : 0 })), cond });
+test('Справочник сайта: 9 форм, 251 молекула, все сопоставлены с базой', () => {
+  assert.equal(A.SITE.forms.length, 9);
+  assert.equal(Object.keys(A.SITE.mols).length, 251);
+  for (const [n, v] of Object.entries(A.SITE.mols)) assert.ok(A.BY[v.id], n);
+  assert.equal(A.SITE.mols['Метиленовый синий'].id, 'methblue');
+  assert.equal(A.SITE.mols['Бетаин HCl'].id, 'betainehcl');
+});
+test('Отметки: NAC + йод — конфликт (таблица аптеки), NAC + медь в каплях — конфликт, NAC + глицин — синергия', () => {
+  const S = st('СЛ', ['N-Ацетилцистеин']);
+  assert.equal(A.candStatus('Йод', S).lvl, 3);
+  assert.equal(A.candStatus('Меди бисглицинат', S).lvl, 3);
+  assert.equal(A.candStatus('Глицин', S).lvl, 1);
+});
+test('Отметки: синефрин + мелатонин — конфликт; минералы между собой — осторожно (таблица аптеки)', () => {
+  assert.equal(A.candStatus('Мелатонин', st('КП', ['Синефрина гидрохлорид'])).lvl, 3);
+  assert.equal(A.candStatus('Цинка бисглицинат', st('КП', ['Магния бисглицинат'])).lvl, 2);
+});
+test('Отметки учитывают пациента: наттокиназа при антикоагулянтах — конфликт', () => {
+  assert.equal(A.candStatus('Наттокиназа', st('КП', ['Экстракт куркумы'], ['anticoag'])).lvl, 3);
+});
+test('Сравнение форм сайта: недоступная в форме молекула — «нельзя»', () => {
+  const F = A.siteFormsFor(st('КП', ['Меди бисглицинат', 'N-Ацетилцистеин']).items, 'КП');
+  assert.ok(F.rows.some(r => r.f === 'НС' && r.rating === 'no'));
+  assert.ok(F.rows.some(r => r.f === 'КП' && ['best', 'ok'].includes(r.rating)));
 });

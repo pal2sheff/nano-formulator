@@ -157,5 +157,6 @@ test('Бисглицинат железа: окисляет витамин C в 
 test('Новые вещества: структура и дескрипторы RDKit, синонимы находятся', () => {
   for (const id of ['nag', 'b2', 'succinic', 'butyrate', 'aucubin', 'mgthr']) assert.ok(A.BY[id].svg && A.BY[id].tpsa != null, id);
   assert.ok(Object.values(A.BY).filter(m => (m.syn || '').includes('Гриффония')).some(m => m.id === 'htp'));
-  assert.equal(Object.keys(A.BY).length, 294);
+  assert.equal(Object.keys(A.BY).length, 301);
+  for (const id of ['methblue', 'eugenol', 'dmannose', 'betaala']) assert.ok(A.BY[id].svg, id);
 });
