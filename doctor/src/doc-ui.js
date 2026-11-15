@@ -99,15 +99,25 @@ function bindPicker(wrap, onPick, opt = {}) {
 }
 
 /* ---------- Ввод ---------- */
-function addId(id) { if (S.ids.includes(id)) { toast(nm(id) + ' уже в составе'); return; } S.ids.push(id); update(); }
+// стандартная (начальная) доза из базы: нижняя граница типичного диапазона, в удобных единицах
+function stdDose(m) {
+  if (!m.dmin) return null;
+  const lo = m.dmin, hi = m.dmax || m.dmin;
+  if (m.id === 'vitd3') return { amt: Math.round(lo / IU.vitd3), unit: 'МЕ', range: `${fmt(lo / IU.vitd3, 0)}–${fmt(hi / IU.vitd3, 0)} МЕ` };
+  if (hi < 1) return { amt: +(lo * 1000).toFixed(1), unit: 'мкг', range: `${fmt(lo * 1000, 1)}–${fmt(hi * 1000, 1)} мкг` };
+  if (lo < 1) return { amt: +(lo * 1000).toFixed(1), unit: 'мкг', range: `${fmt(lo * 1000, 0)}–${fmt(hi * 1000, 0)} мкг` };
+  return { amt: lo, unit: 'мг', range: `${fmt(lo, 0)}–${fmt(hi, 0)} мг` };
+}
+function fillDose(id) { if (S.dose[id] && S.dose[id].amt !== '' && S.dose[id].amt != null) return; const d = stdDose(BY[id]); if (d) S.dose[id] = { amt: d.amt, unit: d.unit }; }
+function addId(id) { if (S.ids.includes(id)) { toast(nm(id) + ' уже в составе'); return; } S.ids.push(id); fillDose(id); update(); }
 function renderItems() {
   $('#clearBtn').hidden = !S.ids.length;
   $('#items').innerHTML = S.ids.length ? S.ids.map((id, k) => {
     const m = BY[id], d = S.dose[id] || {};
     const u = d.unit || (id === 'vitd3' ? 'МЕ' : 'мг');
     return `<div class="ditem"><div class="nm"><button type="button" data-mol="${id}" title="Карточка вещества">${esc(m.ru)}</button>
-      ${effOf(m) ? `<div class="meta">${esc(effOf(m))}</div>` : ''}</div>
-      <div class="dose"><input type="number" inputmode="decimal" min="0" step="any" data-dose="${id}" value="${d.amt ?? ''}" placeholder="доза" aria-label="Доза на приём"><select data-unit="${id}" aria-label="Единица">${UNITS.map(x => `<option${x === u ? ' selected' : ''}>${x}</option>`).join('')}</select></div>
+      ${(() => { const sd = stdDose(m); const parts = [effOf(m), sd ? 'обычно ' + sd.range : ''].filter(Boolean); return parts.length ? `<div class="meta">${esc(parts[0])}${parts[1] ? `<span class="rng">${parts.length > 1 && parts[0] !== parts[1] ? ' · ' : ''}${esc(parts[1])}</span>` : ''}</div>` : ''; })()}</div>
+      <div class="dose"><input type="number" inputmode="decimal" min="0" step="any" data-dose="${id}" value="${d.amt ?? ''}" placeholder="${stdDose(m) ? 'доза' : 'н/д'}" title="${stdDose(m) ? 'Стандартная доза подставлена — можно изменить' : 'Стандартной дозы в базе нет — укажите'}" aria-label="Доза на приём"><select data-unit="${id}" aria-label="Единица">${UNITS.map(x => `<option${x === u ? ' selected' : ''}>${x}</option>`).join('')}</select></div>
       <button type="button" class="rm" data-rm="${k}" aria-label="Удалить" title="Удалить">✕</button></div>`;
   }).join('') : '<div class="empty">Выберите вещества из списка</div>';
 }
@@ -229,6 +239,7 @@ function renderMol(id) {
     ${effOf(m) ? `<p class="v-desc" style="margin:10px 0 0;font-size:15px">${esc(effOf(m))}</p>` : ''}
     <div class="kv" style="margin-top:12px">
       <div class="stat"><div class="k">Направленность</div><div class="d" style="font-size:13.5px;color:var(--text)">${dirs.length ? esc(dirs.join(', ')) : BIOENH.has(id) ? 'усилитель всасывания' : '—'}</div></div>
+      ${stdDose(m) ? `<div class="stat"><div class="k">Обычная доза</div><div class="d" style="font-size:13.5px;color:var(--text)">${esc(stdDose(m).range)}</div></div>` : ''}
       <div class="stat"><div class="k">Время приёма</div><div class="d" style="font-size:13.5px;color:var(--text)">${SLOT_N[tm.slot]}${tm.food ? ', ' + FOOD_N[tm.food] : ''}</div></div>
       ${m.pharm && m.pharm.bf ? `<div class="stat"><div class="k">Форма в аптеке</div><div class="d" style="font-size:13.5px;color:var(--text)">${esc(m.pharm.bf)}</div></div>` : ''}
     </div>
@@ -293,7 +304,7 @@ function route() {
 }
 
 function init() {
-  restore(); renderMethod();
+  restore(); S.ids.forEach(fillDose); renderMethod();
   if (innerWidth >= 960 || S.cond.length) $('#condBox').open = true;
   bindPicker($('#q').closest('.search'), m => addId(m.id), { multi: true, isAdded: id => S.ids.includes(id) });
   bindPicker($('#q2').closest('.search'), m => { location.hash = '#card/' + m.id; }, { isAdded: id => id === CUR_MOL });

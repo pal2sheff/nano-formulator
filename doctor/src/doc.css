@@ -94,3 +94,4 @@ details.more > summary h2 { font-size: 15px; color: var(--text); }
 .frow .fr { color: var(--text-2); font-size: 13px; }
 @media (max-width: 640px) { .frow { grid-template-columns: minmax(0, 1fr); gap: 2px; } .ditem { grid-template-columns: minmax(0, 1fr) 118px 26px; } .ditem .dose input { width: 52px; } }
 .ditem .nm button { overflow-wrap: anywhere; }
+.ditem .meta .rng { color: var(--muted); white-space: nowrap; }
