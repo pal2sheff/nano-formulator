@@ -6,7 +6,7 @@ function load() {
   const json = fs.readFileSync(path.join(tech, 'data/molecules.json'), 'utf8');
   const ctx = { document: { getElementById: () => ({ textContent: json }) }, console };
   vm.createContext(ctx);
-  vm.runInContext(SRC.map(f => fs.readFileSync(f, 'utf8')).join('\n;\n').replace('/*SITE*/null', () => fs.readFileSync(path.join(tech, 'data/site_catalog.json'), 'utf8')) + '\n;globalThis.API = { SITE, siteDose, candStatus, pairStatus, siteFormsFor, analyzeSiteForm, siteSearch: typeof siteSearch !== "undefined" ? siteSearch : null, sid, pkLoad, pkOf, PK, formsFor, analyzeDoc, partners, suggest, synBetween, docReport, contraFor, BY, DIRS, DIR_OF, CONDITIONS };', ctx);
+  vm.runInContext(SRC.map(f => fs.readFileSync(f, 'utf8')).join('\n;\n').replace('/*SITE*/null', () => fs.readFileSync(path.join(tech, 'data/site_catalog.json'), 'utf8')) + '\n;globalThis.API = { SITE, siteDose, candStatus, pairStatus, siteFormsFor, analyzeSiteForm, siteSearch: typeof siteSearch !== "undefined" ? siteSearch : null, sid, pkLoad, pkOf, PK, formsFor, analyzeDoc, partners, suggest, synBetween, docReport, contraFor, BY, DIRS, DIR_OF, CONDITIONS, finalVerdict, formFindings, siteIncPairs, sameSubstance, sanitizeItems, keepDose, equivDose, defDose, zoneOf, zoneName, LOAD_N, FORMS, BY_ROLE: null };', ctx);
   return ctx.API;
 }
 module.exports = { load, SRC };

@@ -265,6 +265,8 @@ function analyze(recipe, opt = {}) {
       else if (x.pc === 'L') F1(1, 'Жизнеспособность', 'масляная суспензия', 'В масле жизнеспособность сохраняется лучше, чем в воде, но ниже, чем в сухих капсулах.', 'Предпочтительны капсулы.');
     }
     if ((m.kind === 'enzyme' || (m.kind === 'protein' && !isEx)) && x.pc === 'W' && F.liquid) F1(2, 'Активность', 'фермент/белок в растворе', 'В водном растворе ферменты теряют активность (денатурация, автолиз протеаз, микробная контаминация); срок годности короткий.', 'Сухая форма; в жидкой — хранение 2–8 °C, короткий BUD (USP <795>: ≤ 14 дней для водных форм в холодильнике).');
+    { const o = ORAL_FP[m.base || m.id], rt = F.route === 'oral' || (F.route === 'oral_sl' && !(+P.sl)) ? 'oral' : (F.route === 'sl' || F.route === 'oral_sl') ? 'sl' : null;
+      if (o && rt && o.routes.includes(rt)) add({ sev: o.sev, cat: 'pharm', type: 'Всасывание', ids: I, item: r.id, rule: 'oral_fp', short: o.short, t: `${m.ru}: ${o.t}`, mech: o.mech, act: o.act }); }
     if (m.kind === 'peptide' && (F.route === 'oral' || (F.route === 'oral_sl' && !(+P.sl)))) F1(2, 'Всасывание', 'пептид при проглатывании', 'Пептиды гидролизуются пепсином и панкреатическими протеазами; пероральная биодоступность обычно < 1% без специальных усилителей.', 'Рассмотреть сублингвальную или назальную форму.', 'pharm');
     if (x.heat && !isEx) {
       const he = m.S.he;
@@ -353,7 +355,7 @@ function analyze(recipe, opt = {}) {
   }
   if ((form === 'slspray' || ((form === 'drops' || form === 'hydro') && +P.sl === 1)) && pH != null && (pH < 3 || pH > 9)) add({ sev: 1, cat: 'form', type: 'pH слизистой', t: `pH ${fmt(pH, 1)} при удержании во рту`, mech: 'Сильнокислый или щелочной раствор при длительном контакте раздражает слизистую и повреждает эмаль.', act: 'Буферировать или разбавлять перед приёмом.', rule: 'sl_ph' });
   if (form === 'gel' && P.gelling === 'carbomer' && pH != null && (pH < 4.5 || pH > 9)) add({ sev: pH < 4.5 ? 3 : 2, cat: 'phys', type: 'Вязкость основы', t: `Карбомер при pH ${fmt(pH, 1)}`, mech: 'Карбомер загущает только после нейтрализации (pH 5–8); при pH < 4,5 гель не образуется, при высоком pH и солях — разжижается.', act: 'ГЭЦ/ГПМЦ вместо карбомера или буферирование.', rule: 'carbomer_ph' });
-  if ((form === 'cream' || form === 'td') && pH != null && (pH < 3.5 || pH > 9)) add({ sev: 2, cat: 'form', type: 'pH кожи', t: `pH водной фазы ${fmt(pH, 1)}`, mech: 'Сильнокислая или щелочная основа раздражает кожу и может разрушать эмульсию / PLO-гель.', act: 'Буферировать водную фазу до 4,5–7.', rule: 'skin_ph' });
+  if ((form === 'cream' || form === 'td') && pH != null && (pH < 3.5 || pH > 9)) add({ sev: 2, cat: 'form', type: 'pH кожи', t: `pH водной фазы ${fmt(pH, 1)}`, mech: 'Сильнокислая или щелочная основа раздражает кожу и может разрушать эмульсию (в том числе трансдермальную основу Pentravan).', act: 'Буферировать водную фазу до 4,5–7.', rule: 'skin_ph' });
   if (form === 'oildr' && actives.length && actives.filter(r => r.status === 'взвесь').length > actives.length / 2) add({ sev: 2, cat: 'form', type: 'Выбор формы', t: 'Большинство веществ не растворяются в масле', mech: 'Масляная форма подходит для жирорастворимых веществ; гидрофильные остаются взвесью.', act: 'Рассмотреть водные капли или капсулы.', rule: 'oil_choice' });
 
   /* ---- Парные правила ---- */
@@ -371,7 +373,7 @@ function analyze(recipe, opt = {}) {
       if (R.cat !== 'syn' && !(sev > 0)) continue;
       const key = R.id + ':' + [A.id, B.id].sort().join('|');
       if (findings.some(f => f.key === key)) continue;
-      add({ key, sev, cat: R.cat, type: R.type, ids: [A.id, B.id], pairs: [[A.id, B.id]], rule: R.id, split: !!R.split,
+      add({ key, sev, cat: R.cat, type: R.type, ids: [A.id, B.id], pairs: [[A.id, B.id]], rule: R.id, split: !!R.split, add: !!R.add,
         implicit: all[i].implicit || all[j].implicit,
         t: `${A.ru} + ${B.ru}${all[i].implicit || all[j].implicit ? ' (основа)' : ''}`,
         mech: fill(R.mech, A, B), act: fill(R.act, A, B) });
@@ -593,7 +595,8 @@ function niChecks(ctx) {
       }
     }
     // растворитель формы
-    const solvs = x.pc === 'W' && x.V ? ['water'] : (x.pc === 'L' && (form === 'oildr' || form === 'oint') ? ['oil'] : []);
+    // в эмульсионных основах (крем, трансдермальный крем Pentravan) липофильное вещество распределяется в масляную фазу — вода не единственный растворитель
+    const solvs = x.pc === 'W' && x.V && F.phase !== 'emulsion' ? ['water'] : (x.pc === 'L' && (form === 'oildr' || form === 'oint') ? ['oil'] : []);
     if (fr) { if ((fr.ethanol || 0) > 0 || hydroEth > 0) solvs.push('ethanol'); if ((fr.pg || 0) > 0) solvs.push('pg'); if ((fr.glycerin || 0) > 0) solvs.push('glycerin'); }
     const ok = ni.solvents || [], bad = ni.insol || [];
     solvs.forEach(sv => {

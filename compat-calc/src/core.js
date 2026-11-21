@@ -120,7 +120,8 @@ function pottsGuy(m) {
 }
 
 /* ---------- Единицы ---------- */
-const IU = { vitd3: 0.000025, vite: 1 / 1.49, retinol: 0.0003, oxytocin: 0.00168 };
+// мг на 1 МЕ. Витамин E у аптеки — синтетический DL-α-токоферол: 1 МЕ = 0,91 мг (USP; для природного d-α было бы 0,67 мг)
+const IU = { vitd3: 0.000025, vite: 0.91, retinol: 0.0003, oxytocin: 0.00168 };
 function toMg(row, form, P) {
   const v = +row.amt; if (!isFinite(v) || v <= 0) return 0;
   switch (row.unit) {
@@ -149,7 +150,7 @@ const FORMS = {
   troche: { n: 'Троше', fam: 'oral', phase: 'melt', unitMass: true, route: 'sl', ico: 'troche' },
   nasal:  { n: 'Назальный спрей', fam: 'nasal', phase: 'aqueous', liquid: true, route: 'nasal', ico: 'nasal' },
   cream:  { n: 'Крем (м/в)', fam: 'topical', phase: 'emulsion', unitMass: true, route: 'topical', aq: 0.7, ico: 'cream' },
-  td:     { n: 'Трансдермальный (Lipoderm/PLO)', fam: 'topical', phase: 'emulsion', unitMass: true, route: 'td', aq: 0.6, ico: 'td' },
+  td:     { n: 'Трансдермальный крем (Pentravan)', fam: 'topical', phase: 'emulsion', unitMass: true, route: 'td', aq: 0.6, ico: 'td' },
   gel:    { n: 'Гель', fam: 'topical', phase: 'aqueous', unitMass: true, route: 'topical', aq: 0.95, ico: 'gel' },
   oint:   { n: 'Мазь безводная', fam: 'topical', phase: 'anhydrous', unitMass: true, route: 'topical', ico: 'oint' },
   supp:   { n: 'Свеча ректальная', fam: 'rectal', phase: 'melt', unitMass: true, route: 'rectal', ico: 'supp' },

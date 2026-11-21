@@ -63,7 +63,13 @@ let T = { code: 'КП', items: [], Pov: {}, unlim: false, th: 0, cat: 0, q: '' }
 let S = { form: 'caps', P: Object.assign({}, FORM_DEFAULTS.caps), items: [] };
 let FILT = 'all', TAB = 'recipe', CUR_MOL = null, LAST = null, LAST_SPLIT = null;
 function save() { try { localStorage.setItem('cc_tech2', JSON.stringify(T)); } catch (e) {} }
-function restore() { try { const s = JSON.parse(localStorage.getItem('cc_tech2') || 'null'); if (s && SFORM[s.code] && Array.isArray(s.items)) T = Object.assign(T, s, { items: s.items.filter(it => SITE.mols[it.n]), q: '' }); } catch (e) {} }
+function restore() {
+  try {
+    const s = JSON.parse(localStorage.getItem('cc_tech2') || 'null');
+    if (s && SFORM[s.code] && Array.isArray(s.items)) T = Object.assign(T, { code: s.code, items: sanitizeItems(s.items, s.code), Pov: s.Pov && typeof s.Pov === 'object' && !Array.isArray(s.Pov) ? s.Pov : {}, unlim: s.unlim === true,
+      th: Number.isInteger(s.th) && s.th >= 0 && s.th < SITE.tree.length ? s.th : 0, cat: Number.isInteger(s.cat) && s.cat >= 0 ? s.cat : 0, q: '' });
+  } catch (e) {}
+}
 const availIn = (n, code) => !!siteDose(n, code);
 function syncS() {
   const e = engineFor(T.code), live = T.items.filter(it => availIn(it.n, T.code));
@@ -240,7 +246,7 @@ function renderItems(res) {
       <div class="drow2"><input type="range" min="0" max="${maxOf(d)}" step="${stepOf(d)}" value="${it.amt}" data-amt="${k}" aria-label="Суточная доза">
       <span class="dval"><input type="number" min="0" max="${maxOf(d)}" step="${stepOf(d)}" value="${it.amt}" data-amtn="${k}" aria-label="Суточная доза"><span class="u">${esc(u)}</span></span></div>
       ${zoneBar(d, +it.amt)}
-      <div class="dmeta"><span class="zone ${z || ''}">${z ? ZONES[z] : 'доза не указана'}</span><span class="muted">0–${fmt(maxOf(d), 2)} ${esc(u)}${T.unlim ? ' (ограничение снято)' : ''}</span></div>
+      <div class="dmeta"><span class="zone ${z || ''}">${esc(zoneName(z, it.n))}</span><span class="muted">0–${fmt(maxOf(d), 2)} ${esc(u)}${T.unlim ? ' (ограничение снято)' : ''}</span></div>
       ${meta.length ? `<div class="dmeta" style="justify-content:flex-start">${meta.join('')}</div>` : ''}
     </div>`;
   }).join('') : '<div class="empty">Выберите форму, вид терапии, категорию и молекулы</div>';
@@ -252,11 +258,13 @@ function addSite(n) {
   if (!availIn(n, T.code)) { toast(n + ' — нет в форме «' + SFORM[T.code].n + '»'); return; }
   const i = T.items.findIndex(it => it.n === n);
   if (i >= 0) { T.items.splice(i, 1); update(); return; }
-  T.items.push({ n, amt: siteDose(n, T.code).prof }); update();
+  const same = sameSubstance(T.items, n); // одно вещество под двумя названиями — одна позиция
+  if (same) { toast(`«${n}» — то же вещество, что «${same.n}» в составе: измените дозу там`); return; }
+  const d = siteDose(n, T.code); T.items.push({ n, amt: defDose(d), u: d.u }); update();
 }
 function addItem(m) { const n = (SITE_IDS[m.id] || []).find(x => availIn(x, T.code)); if (n) addSite(n); else toast(m.ru + ' — нет в форме «' + SFORM[T.code].n + '» в конструкторе аптеки'); }
 function setForm(code) {
-  T.code = code; T.items.forEach(it => { const d = siteDose(it.n, code); if (d) it.amt = d.prof; });
+  const from = T.code; T.code = code; T.items.forEach(it => keepDose(it, code, from)); // назначенная доза не меняется, если единицы те же
   SOLO.clear(); update(true);
 }
 
@@ -273,7 +281,7 @@ function molLinks(ids) { return [...new Set(ids)].map(id => `<button type="butto
 function findingHTML(f) {
   const k = f.cat === 'syn' ? 'syn' : SEV[f.sev].k;
   return `<div class="fnd ${k}">
-    <div class="fnd-h">${f.cat === 'syn' ? sevBadge(0) : sevBadge(f.sev)}<span class="ty">${CAT[f.cat]} · ${esc(f.type)}</span>${f.cat === 'syn' ? '' : srcTag(f)}</div>
+    <div class="fnd-h">${f.cat === 'syn' ? sevBadge(0) : sevBadge(f.sev)}<span class="ty">${f.add ? 'Дополнение эффектов (предполагаемое)' : CAT[f.cat]} · ${esc(f.type)}</span>${f.cat === 'syn' ? '' : srcTag(f)}</div>
     <div class="fnd-t">${esc(f.t)}</div>
     <p>${esc(f.mech)}</p>
     ${f.act ? `<div class="act"><b>${f.cat === 'syn' ? 'Применение' : 'Что сделать'}:</b> ${esc(f.act)}</div>` : ''}
@@ -620,15 +628,20 @@ function init() {
     const b = e.target.closest('[data-sn]'); if (b) addSite(b.dataset.sn);
   });
   $('#q').addEventListener('input', e => { T.q = e.target.value; renderCtor(); });
-  $('#unlim').addEventListener('change', e => { T.unlim = e.target.checked; T.items.forEach(it => { const d = siteDose(it.n, T.code); if (d && it.amt > maxOf(d)) it.amt = maxOf(d); }); update(); });
+  $('#unlim').addEventListener('change', e => {
+    T.unlim = e.target.checked; const cut = [];
+    T.items.forEach(it => { const d = siteDose(it.n, T.code); if (d && it.amt > maxOf(d)) { it.amt = maxOf(d); cut.push(it.n); } });
+    if (cut.length) toast('Доза снижена до максимума аптеки: ' + cut.join(', '));
+    update();
+  });
   $('#params').addEventListener('change', e => { const k = e.target.dataset.p; if (!k) return; T.Pov[S.form] = Object.assign({}, T.Pov[S.form], { [k]: e.target.tagName === 'SELECT' ? e.target.value : +e.target.value }); SOLO.clear(); PAIR_CACHE.clear(); update(true); });
   $('#items').addEventListener('click', e => { const r = e.target.closest('[data-rmn]'); if (r) { T.items = T.items.filter(it => it.n !== r.dataset.rmn); update(); } });
   $('#items').addEventListener('input', e => {
     const k = e.target.dataset.amt ?? e.target.dataset.amtn; if (k == null) return;
-    const it = T.items[+k], d = siteDose(it.n, T.code); it.amt = Math.max(0, Math.min(maxOf(d), +e.target.value || 0));
+    const it = T.items[+k], d = siteDose(it.n, T.code); it.amt = Math.max(0, Math.min(maxOf(d), +e.target.value || 0)); it.u = d.u;
     const card = e.target.closest('.dcard');
     card.querySelectorAll('[data-amt],[data-amtn]').forEach(x => { if (x !== e.target || +x.value > it.amt) x.value = it.amt; });
-    const z = zoneOf(it.amt, d); const zt = card.querySelector('.zone'); zt.className = 'zone ' + (z || ''); zt.textContent = z ? ZONES[z] : 'доза не указана';
+    const z = zoneOf(it.amt, d); const zt = card.querySelector('.zone'); zt.className = 'zone ' + (z || ''); zt.textContent = zoneName(z, it.n);
     card.querySelector('.zbar').outerHTML = zoneBar(d, it.amt);
     save(); clearTimeout(window._dt); window._dt = setTimeout(() => update(false, true), 300);
   });
@@ -640,7 +653,7 @@ function init() {
     const c = e.target.closest('#copyBtn'); if (c) { copyText(orderText() + '\n\n' + reportText(LAST, LAST_SPLIT)); return; }
     const g = e.target.closest('[data-grp]'); if (g && LAST_SPLIT) {
       const gr = LAST_SPLIT.groups[+g.dataset.grp]; const code = ENGINE_TO_SITE[gr.form] || T.code;
-      T.items = gr.items.filter(i => i.n).map(i => ({ n: i.n, amt: (siteDose(i.n, code) || {}).prof || i.amt })); T.code = code; FILT = 'all'; SOLO.clear(); update(true); window.scrollTo({ top: 0, behavior: 'smooth' }); return;
+      T.items = gr.items.filter(i => i.n).map(i => { const o = T.items.find(t => t.n === i.n) || { n: i.n }; const it = { n: i.n, amt: o.amt, u: o.u }; keepDose(it, code, T.code); return it; }); T.code = code; FILT = 'all'; SOLO.clear(); update(true); window.scrollTo({ top: 0, behavior: 'smooth' }); return;
     }
     const a = e.target.closest('[data-addmol]'); if (a) { addItem(BY[a.dataset.addmol]); location.hash = ''; route(); return; }
   });
@@ -653,7 +666,7 @@ function init() {
 }
 function orderText() {
   const L = ['ЗАКАЗ: ' + SFORM[T.code].n];
-  T.items.forEach((it, k) => { const d = siteDose(it.n, T.code); L.push(`  ${k + 1}. ${it.n} — ${d ? fmt(+it.amt, 3) + ' ' + (UNIT_N[d.u] || d.u) + '/сут (' + (ZONES[zoneOf(+it.amt, d)] || '—') + ')' : 'нет в этой форме'}`); });
+  T.items.forEach((it, k) => { const d = siteDose(it.n, T.code); L.push(`  ${k + 1}. ${it.n} — ${d ? fmt(+it.amt, 3) + ' ' + (UNIT_N[d.u] || d.u) + '/сут (' + zoneName(zoneOf(+it.amt, d), it.n) + ')' : 'нет в этой форме'}`); });
   if (T.unlim) L.push('  Ограничение на максимальную дозу снято.');
   return L.join('\n');
 }

@@ -21,9 +21,10 @@ test('Куркумин + пиперин: синергия, противореч�
   assert.ok(r.syn.some(f => f.rule === 'syn_piperine'));
   assert.equal(r.verdict.k, 'ok');
 });
-test('Метформин + берберин у пациента на сахароснижающей терапии', () => {
+test('Метформин + берберин у пациента на сахароснижающей терапии — не абсолютное противопоказание, требуется уточнение', () => {
   const r = run('metformin berberine mecbl', ['diab']);
-  assert.equal(r.verdict.k, 'crit');
+  assert.notEqual(r.verdict.k, 'crit');
+  assert.ok(r.patient.some(c => c.k === 'diab' && c.items.some(x => x.id === 'metformin' && x.sev === 2 && /Требуется уточнение/.test(x.t))));
   assert.ok(r.inter.some(f => f.rule === 'g_hypogly'));
   assert.ok(r.syn.some(f => f.rule === 'syn_b12depl'));
 });
@@ -34,7 +35,8 @@ test('5-HTP + SAMe на антидепрессантах — противопо�
 });
 test('Наттокиназа + антикоагулянты; витамин K2 и варфарин', () => {
   assert.equal(run('nattokinase', ['anticoag']).verdict.k, 'crit');
-  assert.ok(A.contraFor(A.BY.vitk2).some(c => c.c === 'anticoag' && c.sev === 3));
+  const k = A.contraFor(A.BY.vitk2).find(c => c.c === 'anticoag');   // категория объединяет АВК, НОАК и антиагреганты
+  assert.ok(k && k.sev === 2 && /Требуется уточнение/.test(k.t) && /антагонист/.test(k.t) && /прямыми оральными/.test(k.t));
 });
 test('Тадалафил: нитраты — противопоказано; без нитратов — суммирование с аргинином умеренно', () => {
   assert.equal(run('tadalafil', ['nitrates']).verdict.k, 'crit');
@@ -153,7 +155,7 @@ test('Формы: BPC-157 — назально/сублингвально пре
 });
 test('Все активные вещества имеют направленность (кроме пиперина) и данные метаболизма', () => {
   const act = Object.values(A.BY).filter(m => m.kind !== 'excipient');
-  assert.equal(act.length, 263);
+  assert.equal(act.length, 268);
   assert.deepEqual(act.filter(m => !A.DIR_OF[m.id]).map(m => m.id).sort(), ['piperine']);
   assert.ok(act.every(m => A.PK[m.id]));
 });
@@ -180,8 +182,109 @@ test('Отметки: синефрин + мелатонин — конфликт
 test('Отметки учитывают пациента: наттокиназа при антикоагулянтах — конфликт', () => {
   assert.equal(A.candStatus('Наттокиназа', st('КП', ['Экстракт куркумы'], ['anticoag'])).lvl, 3);
 });
-test('Сравнение форм сайта: недоступная в форме молекула — «нельзя»', () => {
+test('Сравнение форм сайта: нет позиции в каталоге — «нет данных», а не «нельзя»', () => {
   const F = A.siteFormsFor(st('КП', ['Меди бисглицинат', 'N-Ацетилцистеин']).items, 'КП');
-  assert.ok(F.rows.some(r => r.f === 'НС' && r.rating === 'no'));
+  assert.ok(!F.rows.some(r => r.f === 'НС'));
+  assert.ok(F.na.includes('НС') && /нет в каталоге/.test(F.naWhy['НС']));
   assert.ok(F.rows.some(r => r.f === 'КП' && ['best', 'ok'].includes(r.rating)));
+});
+
+/* ---------- Регрессия по аудиту ---------- */
+test('Аудит 1: трансдермальные гормоны — Pentravan, ТД не проигрывает капсулам, прогестерон не приравнен к пероральному', () => {
+  assert.match(A.FORMS.td.n, /Pentravan/);
+  assert.match(A.BY.plo.ru, /Pentravan/);
+  for (const n of ['Биоидентичный тестостерон', 'Биоидентичный эстрадиол']) {
+    const F = A.siteFormsFor(st('ТД', [n]).items, 'ТД');
+    assert.equal(F.rows[0].f, 'ТД', n + ': первая форма — трансдермальный крем');
+    assert.equal(F.rows[0].rating, 'best');
+  }
+  for (const n of ['Биоидентичный тестостерон', 'Биоидентичный прогестерон', 'Биоидентичный DHEA', 'Биоидентичный прегненолон']) {
+    const res = A.analyzeSiteForm(st('ТД', [n]).items, 'ТД');
+    assert.ok(!A.formFindings(res).some(f => f.sev >= 2), n + ': в Pentravan нет ложной «нерастворимости в воде»');
+  }
+  const P = A.siteFormsFor(st('ТД', ['Биоидентичный прогестерон']).items, 'ТД');
+  const td = P.rows.find(r => r.f === 'ТД');
+  assert.notEqual(td.rating, 'best');
+  assert.ok(td.reasons.some(t => /эндометри/.test(t)));
+});
+test('Аудит 2: экранный и копируемый вердикт — один итог; технологическая несовместимость не оставляет «Сочетание оправдано»', () => {
+  const s = st('СЛ', ['Меди бисглицинат', 'N-Ацетилцистеин']);
+  const r = A.analyzeDoc(s.items.map(it => A.sid(it.n)));
+  const res = A.analyzeSiteForm(s.items, 'СЛ');
+  const v = A.finalVerdict(r, A.formFindings(res), A.siteIncPairs(r.ids), 'СЛ');
+  assert.equal(v.k, 'crit');
+  const rep = A.docReport(r, v);
+  assert.match(rep, /ВЕРДИКТ: Несовместимо в форме/);
+  assert.ok(!/Сочетание оправдано|Противоречий не найдено/.test(rep));
+});
+test('Аудит 3: дозы — UL витамина D, МЕ витамина E (DL), смена формы не меняет назначенную дозу', () => {
+  const d = A.siteDose('Витамин D3 (холекальциферол)', 'КП');
+  assert.equal(d.max, 1.25, 'технологический максимум аптеки сохранён');
+  assert.equal(d.ul, 0.1, 'UL витамина D — 100 мкг (4000 МЕ)');
+  assert.equal(A.defDose(d), 0.1, 'доза по умолчанию не выше UL');
+  assert.equal(A.zoneOf(0.2, d), 'ul', '8000 МЕ не маркируется как профилактическая');
+  assert.equal(A.zoneOf(0.05, d), 'sub');
+  assert.equal(A.zoneOf(0.1, d), 'prof', '4000 МЕ (UL) — профилактическая');
+  assert.match(A.zoneName('prof', 'Биоидентичный тестостерон'), /средняя/);
+  // смена формы: те же единицы — доза прежняя; другие единицы — тот же уровень дозы
+  const it = { n: 'Мелатонин', amt: 7, u: 'мг' }; A.keepDose(it, 'СЛ', 'КП'); assert.equal(it.amt, 7);
+  const it2 = { n: 'Биоидентичный прогестерон', amt: 100, u: 'мг' }; A.keepDose(it2, 'КК', 'КП');
+  assert.equal(it2.u, '%'); assert.equal(it2.amt, 2, 'профилактический уровень → профилактический уровень');
+});
+test('Аудит 4: одно вещество под двумя названиями — одна позиция; разные формы и экстракты — разные записи с суммированием', () => {
+  assert.equal(A.sid('PQQ'), A.sid('Витамин B14'));
+  assert.ok(A.sameSubstance([{ n: 'PQQ', amt: 10 }], 'Витамин B14'));
+  for (const [a, b] of [['Астаксантин', 'Экстракт гематококка'], ['Силимарин', 'Силибинин'], ['Пикногенол', 'Экстракт коры сосны'], ['Папаин', 'Экстракт папайи']]) {
+    assert.notEqual(A.sid(a), A.sid(b), a + ' и ' + b + ' — разные записи');
+    assert.equal(A.BY[A.sid(b)].base, A.sid(a));
+  }
+  const r = A.analyzeDoc(['astax', 'haemat']);
+  assert.ok(r.inter.some(f => f.rule === 'same_active' && f.sev === 2));
+  // сохранённый состав: мусор, отрицательная доза и повтор вещества отбрасываются / исправляются
+  const its = A.sanitizeItems([null, { n: 'PQQ', amt: 'abc' }, { n: 'Витамин B14', amt: 5 }, { n: 'Нет такого', amt: 1 }, { n: 'Мелатонин', amt: -3 }], 'КП');
+  assert.deepEqual([...its.map(i => i.n)], ['PQQ', 'Мелатонин']);
+  assert.ok(its.every(i => isFinite(i.amt) && i.amt >= 0));
+});
+test('Аудит 5: противопоказания — метформин при ХБП и K2 с антикоагулянтами требуют уточнения; Г6ФД в заключении', () => {
+  const k = A.contraFor(A.BY.metformin).find(c => c.c === 'kidney');
+  assert.equal(k.sev, 2); assert.match(k.t, /Требуется уточнение СКФ/); assert.match(k.t, /< 30/);
+  assert.notEqual(run('metformin', ['kidney']).verdict.k, 'crit');
+  const mb = run('methblue');
+  assert.notEqual(mb.verdict.k, 'ok');
+  assert.match(mb.verdict.d, /Г6ФД/);
+  assert.match(A.docReport(mb), /Г6ФД/);
+});
+test('Аудит 6–7: пересечение путей метаболизма не названо нагрузкой; дополнение эффектов отделено от синергии', () => {
+  assert.ok(!/Высокая/.test(Object.values(A.LOAD_N).map(x => x.t).join(' ')));
+  const r = run('quercetin resv');
+  assert.ok(r.syn.length && r.syn.every(f => f.add), 'общее направление — дополнение эффектов');
+  assert.equal(r.verdict.t, 'Противоречий не найдено');
+  const c = run('curcumin piperine');
+  assert.ok(c.syn.some(f => f.rule === 'syn_piperine' && !f.add), 'фармакокинетическая синергия подтверждена');
+});
+test('Аудит 8: сравнение форм — назначенная доза не заменяется справочной', () => {
+  const items = [{ n: 'Мелатонин', amt: 10, u: 'мг' }];   // терапевтический уровень в капсулах
+  const F = A.siteFormsFor(items, 'КП');
+  assert.ok(!F.rows.some(r => r.f === 'КП' && r.reasons.some(t => /выше максимума/.test(t))));
+  assert.ok(F.typical);
+  assert.equal(A.equivDose(10, A.siteDose('Мелатонин', 'КП'), A.siteDose('Мелатонин', 'ТР')), 5, 'максимум → максимум, а не профилактическая доза');
+});
+test('Аудит: пресистемная инактивация — тестостерон в капсулах не «Предпочтительно», эстрадиол внутрь с оговоркой, ферменты-антиоксиданты внутрь без системного действия', () => {
+  const T = A.siteFormsFor(st('ТД', ['Биоидентичный тестостерон']).items, 'ТД');
+  const kp = T.rows.find(r => r.f === 'КП');
+  assert.equal(kp.rating, 'limit');
+  assert.ok(kp.reasons.some(t => /печень/.test(t)));
+  assert.ok(!T.rows.some(r => r.f === 'ТР' && r.reasons.some(t => /печень/.test(t))), 'троше (без проглатывания) не помечается');
+  const E = A.siteFormsFor(st('ТД', ['Биоидентичный эстрадиол']).items, 'ТД').rows.find(r => r.f === 'КП');
+  assert.equal(E.rating, 'ok'); assert.ok(E.reasons.some(t => /тромбоз/.test(t)));
+  for (const n of ['Супероксиддисмутаза (SOD)', 'Каталаза', 'Глутатионпероксидаза (GPx)']) {
+    const name = Object.keys(A.SITE.mols).find(k => A.SITE.mols[k].id === { 'Супероксиддисмутаза (SOD)': 'sod', 'Каталаза': 'catalase', 'Глутатионпероксидаза (GPx)': 'gpx' }[n]);
+    const res = A.analyzeSiteForm(st('КП', [name]).items, 'КП');
+    assert.ok(A.formFindings(res).some(f => f.rule === 'oral_fp' && f.sev === 2), n);
+  }
+  // формы, которые внутрь работают, не помечаются
+  for (const n of ['Биоидентичный прогестерон', 'Биоидентичный DHEA', 'Мелатонин']) {
+    const res = A.analyzeSiteForm(st('КП', [n]).items, 'КП');
+    assert.ok(!res.findings.some(f => f.rule === 'oral_fp'), n);
+  }
 });
