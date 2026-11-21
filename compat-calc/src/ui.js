@@ -211,7 +211,7 @@ function molBtn(n, showPath) {
   return `<button type="button" class="mbtn${k >= 0 ? ' on' : ''}" data-sn="${esc(n)}">${k >= 0 ? `<span class="mnum">${k + 1}</span>` : ''}<span class="mname">${esc(n)}${p}</span>${statusHTML(n)}</button>`;
 }
 function renderCtor() {
-  $('#ftiles').innerHTML = SITE.forms.map(f => `<button type="button" class="ftile" data-form="${f.code}" aria-pressed="${f.code === T.code}">${fico(FORM_ICO[f.code])}<span><b>${f.code}</b> ${esc(f.n)}</span></button>`).join('');
+  $('#ftiles').innerHTML = SITE.forms.map(f => `<button type="button" class="ftile" data-form="${f.code}" aria-pressed="${f.code === T.code}">${fico(FORM_ICO[f.code])}<span>${esc(f.n)}</span></button>`).join('');
   $('#unlim').checked = !!T.unlim;
   const ths = thList(T.code); if (!ths.some(x => x.i === T.th) && ths.length) T.th = ths[0].i;
   const TH = SITE.tree[T.th];

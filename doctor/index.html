@@ -3501,7 +3501,7 @@ function molBtn(n, showPath) {
   return `<button type="button" class="mbtn${k >= 0 ? ' on' : ''}" data-sn="${esc(n)}">${k >= 0 ? `<span class="mnum">${k + 1}</span>` : ''}<span class="mname">${esc(n)}${p}</span>${statusHTML(n)}</button>`;
 }
 function renderCtor() {
-  $('#ftiles').innerHTML = SITE.forms.map(f => `<button type="button" class="ftile" data-form="${f.code}" aria-pressed="${f.code === S.form}">${fico(FORM_ICO[f.code])}<span><b>${f.code}</b> ${esc(f.n)}</span></button>`).join('');
+  $('#ftiles').innerHTML = SITE.forms.map(f => `<button type="button" class="ftile" data-form="${f.code}" aria-pressed="${f.code === S.form}">${fico(FORM_ICO[f.code])}<span>${esc(f.n)}</span></button>`).join('');
   $('#unlim').checked = !!S.unlim;
   const ths = thList(S.form);
   if (!ths.some(x => x.i === S.th) && ths.length) S.th = ths[0].i;
