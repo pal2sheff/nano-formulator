@@ -388,6 +388,10 @@ function analyze(recipe, opt = {}) {
     add({ sev: G.sev(mm, sum), cat: 'pharm', type: G.type, ids: mm.map(m => m.id), pairs, rule: G.id, t: mm.map(m => m.ru).join(' + '), mech: G.mech, act: G.act });
   }
 
+  /* ---- Данные аптеки Nano Identica (блок ni): pH, нагрев, растворитель, концентрация, консерванты ---- */
+  niChecks({ rows, actives, x, form, F, pH, fr, hydroEth, add, findings, phInfo });
+
+  findings.forEach(f => { if (f.cat !== 'syn' && !f.src) f.src = ['lit']; });
   findings.sort((a, b) => (b.sev || 0) - (a.sev || 0) || (a.cat === 'syn') - (b.cat === 'syn'));
   const probs = findings.filter(f => f.cat !== 'syn');
   const maxSev = probs.length ? Math.max(...probs.map(f => f.sev)) : 0;
@@ -516,7 +520,7 @@ function reportText(res, split) {
   const probs = res.findings.filter(f => f.cat !== 'syn');
   if (probs.length) {
     L.push(''); L.push('Находки:');
-    probs.forEach((f, i) => { L.push(`${i + 1}. [${SEV[f.sev].t}] ${CAT[f.cat]} — ${f.type}: ${f.t}`); L.push('   Механизм: ' + f.mech); L.push('   Что сделать: ' + f.act); });
+    probs.forEach((f, i) => { L.push(`${i + 1}. [${SEV[f.sev].t}] ${CAT[f.cat]} — ${f.type}: ${f.t}${f.src ? ' (источник: ' + srcLabel(f) + ')' : ''}`); L.push('   Механизм: ' + f.mech); L.push('   Что сделать: ' + f.act); });
   }
   const syn = res.findings.filter(f => f.cat === 'syn');
   if (syn.length) { L.push(''); L.push('Синергия:'); syn.forEach(f => L.push(`  + ${f.t} — ${f.type}: ${f.mech}`)); }
@@ -526,4 +530,118 @@ function reportText(res, split) {
   }
   L.push(''); L.push('Все значения — оценочные (модели и справочные данные), дозировки не рекомендуются.');
   return L.join('\n');
+}
+
+/* ---------- Данные аптеки Nano Identica ---------- */
+const SRC_N = { lit: 'литература', ni: 'данные аптеки' };
+function srcLabel(f) { return (f.src || []).map(k => SRC_N[k]).filter(Boolean).join(' и '); }
+const NI_PRES = ['nabenz', 'ksorb', 'mparaben', 'benzylalc'];          // консерванты базы
+const NI_ANTI = ['metabisulfite', 'ascpalm', 'tocoph', 'edta'];        // антиоксиданты и хелаторы базы
+const NI_PA_N = { nabenz: 'натрия бензоат', ksorb: 'калия сорбат', mparaben: 'парабены', benzylalc: 'бензиловый спирт', phenoxy: 'феноксиэтанол',
+  dehydroacetic: 'дегидроуксусная кислота', ehg: 'этилгексилглицерин', quat: 'четвертичные аммониевые', chlorobutanol: 'хлорбутанол', tocoph: 'токоферол',
+  ascpalm: 'аскорбилпальмитат', metabisulfite: 'метабисульфит', edta: 'ЭДТА', vitc: 'аскорбиновая кислота', citric: 'лимонная кислота', bht: 'BHT', bha: 'BHA',
+  rosemary: 'экстракт розмарина', cysteine: 'цистеин', thiosulfate: 'тиосульфат' };
+const NI_SOLV_N = { water: 'вода', ethanol: 'этанол', pg: 'пропиленгликоль', glycerin: 'глицерин', oil: 'масла', dmso: 'ДМСО', peg: 'ПЭГ', ps80: 'полисорбат', org: 'органические растворители' };
+const NI_PA_RX = { nabenz: /бензоат|бензойн/i, ksorb: /сорбат|сорбинов/i, mparaben: /парабен|нипагин/i, benzylalc: /бензилов\S* спирт/i,
+  metabisulfite: /сульфит/i, ascpalm: /аскорбил\s*пальмитат/i, tocoph: /токоферол/i, edta: /эдта|эдетат|edta/i };
+function niOf(m) { return m && m.ni ? m.ni : null; }
+// Добавить к уже найденной (литературной) проблеме пометку «данные аптеки» или создать новую
+function niAdd(ctx, match, f) {
+  const old = ctx.findings.find(match);
+  if (old) {
+    if (!(old.src || []).includes('ni')) old.src = (old.src || ['lit']).concat('ni');
+    old.sev = Math.max(old.sev, f.sev);
+    old.mech += ' По данным аптеки: ' + f.ni + '.';
+    return old;
+  }
+  return ctx.add(Object.assign({ src: ['ni'], cat: 'stab' }, f, { mech: f.mech || ('По данным аптеки: ' + f.ni + '.') }));
+}
+function niChecks(ctx) {
+  const { rows, actives, x, form, F, pH, fr, hydroEth, findings } = ctx;
+  const nm = id => BY[id] ? BY[id].ru : id;
+  const pa = rows.filter(r => NI_PRES.includes(r.id) || NI_ANTI.includes(r.id));
+  const ph = actives.map(r => niOf(r.m) && niOf(r.m).ph_ni).filter(Boolean);
+  if (ph.length) { ctx.phInfo.niLo = Math.max(...ph.map(p => p[0])); ctx.phInfo.niHi = Math.min(...ph.map(p => p[1])); }
+  actives.forEach(r => {
+    const m = r.m, ni = niOf(m); if (!ni) return;
+    const I = [r.id], who = m.ru;
+    // pH
+    if (x.pc === 'W' && pH != null && ni.ph_ni) {
+      const [lo, hi] = ni.ph_ni, d = pH < lo ? lo - pH : pH > hi ? pH - hi : 0;
+      if (d > 0) niAdd(ctx, f => f.rule === 'ph_window' && f.ids[0] === r.id, { sev: d >= 1 ? 3 : d >= 0.5 ? 2 : 1, type: 'pH вне окна стабильности', ids: I, item: r.id, rule: 'ni_ph',
+        t: `${who}: pH ${fmt(pH, 1)} вне диапазона аптеки ${fmt(lo, 1)}–${fmt(hi, 1)}`,
+        ni: `pH стабильности ${fmt(lo, 1)}–${fmt(hi, 1)}${ni.ph_tx && ni.ph_tx.length > 12 ? ' (' + ni.ph_tx.replace(/\.$/, '') + ')' : ''}`,
+        mech: `Расчётный pH рецептуры ${fmt(pH, 1)} ${pH < lo ? 'ниже' : 'выше'} диапазона стабильности по карточке аптеки (${fmt(lo, 1)}–${fmt(hi, 1)}) на ${fmt(d, 1)} ед.${ni.ph_tx ? ' Карточка: «' + ni.ph_tx.replace(/\.$/, '') + '».' : ''}`,
+        act: `Буферировать до pH ${fmt(lo, 1)}–${fmt(hi, 1)} (цитратный или фосфатный буфер) или вынести вещество в отдельную форму.` });
+    }
+    // температура изготовления
+    if (x.heat) {
+      const lim = ni.heat_ni;
+      if (lim && x.heat > lim) {
+        const over = x.heat - lim;
+        niAdd(ctx, f => f.item === r.id && (f.type === 'Нагрев' || (f.type === 'Липосомы' && /нагрев/.test(f.t)) || f.type === 'Жизнеспособность'),
+          { sev: over >= 15 ? 3 : over >= 5 ? 2 : 1, type: 'Нагрев', ids: I, item: r.id, rule: 'ni_heat',
+            t: `${who}: нагрев ${x.heat} °C выше допустимых ${lim} °C`,
+            ni: `допустимо не выше ${lim} °C («${(ni.heat_tx || '').replace(/\.$/, '')}»)`,
+            mech: `Основа (${x.baseName}) при изготовлении нагревается до ≈ ${x.heat} °C, а по карточке аптеки вещество выдерживает не выше ${lim} °C. Карточка: «${(ni.heat_tx || '').replace(/\.$/, '')}».`,
+            act: 'Вводить в основу при остывании до допустимой температуры, в последнюю очередь; либо форма без нагрева.' });
+      } else if (!lim && ni.heat_q === 'high' && x.heat >= 40) {
+        niAdd(ctx, f => f.item === r.id && f.type === 'Нагрев', { sev: 2, type: 'Нагрев', ids: I, item: r.id, rule: 'ni_heat',
+          t: `${who}: термолабильно по данным аптеки`, ni: `термолабильность «${(ni.heat_tx || '').replace(/\.$/, '')}»`,
+          mech: `Основа нагревается до ≈ ${x.heat} °C; в карточке аптеки термолабильность: «${(ni.heat_tx || '').replace(/\.$/, '')}».`,
+          act: 'Вводить при минимальной температуре в последнюю очередь или выбрать форму без нагрева.' });
+      }
+    }
+    // растворитель формы
+    const solvs = x.pc === 'W' && x.V ? ['water'] : (x.pc === 'L' && (form === 'oildr' || form === 'oint') ? ['oil'] : []);
+    if (fr) { if ((fr.ethanol || 0) > 0 || hydroEth > 0) solvs.push('ethanol'); if ((fr.pg || 0) > 0) solvs.push('pg'); if ((fr.glycerin || 0) > 0) solvs.push('glycerin'); }
+    const ok = ni.solvents || [], bad = ni.insol || [];
+    solvs.forEach(sv => {
+      const main = sv === solvs[0];
+      if (bad.includes(sv) && !ok.includes(sv)) {
+        niAdd(ctx, f => f.item === r.id && (sv === 'ethanol' ? /этанол/.test(f.t) : f.type === 'Фаза'), { sev: main ? (F.liquid ? 3 : 2) : 2, type: 'Растворитель', cat: 'phys', ids: I, item: r.id, rule: 'ni_solv',
+          t: `${who}: ${main ? 'не растворяется в основе формы' : 'плохо переносит сорастворитель'} (${NI_SOLV_N[sv]})`,
+          ni: `${NI_SOLV_N[sv]} — среди нерастворяющих/разрушающих сред («${(ni.insol_tx || '').replace(/\.$/, '')}»)`,
+          mech: `Растворитель формы — ${NI_SOLV_N[sv]}; по карточке аптеки: «${(ni.insol_tx || '').replace(/\.$/, '')}».${ok.length ? ' Рекомендованные растворители: ' + ok.map(k => NI_SOLV_N[k]).join(', ') + '.' : ''}`,
+          act: ok.length ? `Форма на основе: ${ok.map(k => NI_SOLV_N[k]).join(', ')}; либо сухая форма.` : 'Сухая форма или суспензия.' });
+      }
+    });
+    if (solvs.includes('ethanol') && ni.incompat_ni && /спирт|этанол/i.test(ni.incompat_ni) && !(bad.includes('ethanol') && !ok.includes('ethanol'))) {
+      niAdd(ctx, f => f.item === r.id && (f.type === 'Липосомы' && /этанол/.test(f.t) || /этанол/.test(f.t)), { sev: m.T.has('liposome') || m.kind === 'enzyme' || m.kind === 'peptide' || m.kind === 'probiotic' ? 3 : 2,
+        type: 'Растворитель', cat: 'phys', ids: I, item: r.id, rule: 'ni_ethanol', t: `${who}: спирт в составе`,
+        ni: `несовместимости: «${ni.incompat_ni.replace(/\.$/, '')}»`,
+        mech: `В форме есть этанол; карточка аптеки относит спирт к несовместимостям: «${ni.incompat_ni.replace(/\.$/, '')}».`, act: 'Форма без спирта.' });
+    }
+    // предельная концентрация
+    const cm = ni.conc_max;
+    if (cm && cm.v && r.conc != null && solvs.length && cm.solv === solvs[0] && r.conc > cm.v * 1.0001) {
+      const k = r.conc / cm.v;
+      niAdd(ctx, f => f.item === r.id && f.type === 'Фаза' && f.rule !== 'ni_solv', { sev: m.kind === 'formulation' ? 1 : (F.liquid ? (k > 2 ? 3 : 2) : 1), type: 'Концентрация', cat: 'phys', ids: I, item: r.id, rule: 'ni_conc',
+        t: `${who}: ${fmt(r.conc, 1)} мг/мл выше предела аптеки ${fmt(cm.v, 1)} мг/мл`,
+        ni: `предельная концентрация «${cm.tx.replace(/\.$/, '')}»`,
+        mech: `Концентрация в ${NI_SOLV_N[cm.solv]} ${fmt(r.conc, 1)} мг/мл в ${fmt(k, 1)} раза выше предельной по карточке аптеки: «${cm.tx.replace(/\.$/, '')}».`,
+        act: 'Увеличить объём на приём, снизить дозу в единице или перейти на суспензию / сухую форму.' });
+    }
+    // активные вещества состава, которые аптека относит к несовместимостям (например, аскорбиновая кислота для меди)
+    actives.forEach(o => {
+      if (o.id === r.id || !(ni.pa_bad || []).includes(o.id)) return;
+      const ex = findings.find(f => f.cat !== 'syn' && f.ids.includes(r.id) && f.ids.includes(o.id) && !/^ph_/.test(f.rule));
+      const why = `в карточке аптеки ${nm(o.id).toLowerCase()} указан среди несовместимостей: «${(ni.incompat_ni || '').replace(/\.$/, '')}»`;
+      if (ex) { if (!ex.src || !ex.src.includes('ni')) { ex.src = (ex.src || ['lit']).concat('ni'); ex.mech += ' По данным аптеки: ' + why + '.'; } }
+      else ctx.add({ sev: 2, cat: 'chem', src: ['ni'], type: 'Несовместимость', ids: [r.id, o.id], pairs: [[r.id, o.id]], item: r.id, rule: 'ni_incompat',
+        t: `${who} + ${nm(o.id)}`, mech: why[0].toUpperCase() + why.slice(1) + '.', act: 'Развести по разным формам или снизить концентрацию; проверить пробной партией.' });
+    });
+    // консерванты и антиоксиданты состава
+    pa.forEach(e => {
+      const isP = NI_PRES.includes(e.id), list = (isP ? ni.preserv_ok : ni.antiox_ok) || [];
+      const badPA = (ni.pa_bad || []).includes(e.id) || (ni.incompat_ni && NI_PA_RX[e.id] && NI_PA_RX[e.id].test(ni.incompat_ni));
+      const cond = badPA && list.includes(e.id);   // в карточке и среди совместимых, и среди ограничений — совместим с условием
+      if (badPA) ctx.add({ sev: cond ? 2 : 3, cat: 'chem', src: ['ni'], type: isP ? 'Консервант' : 'Антиоксидант', ids: [r.id, e.id], pairs: [[r.id, e.id]], item: r.id, rule: 'ni_pa_bad',
+        t: `${who} + ${nm(e.id)}${cond ? ': совместим с ограничением' : ''}`, mech: `В карточке аптеки ${nm(e.id).toLowerCase()} ${cond ? 'назван среди совместимых, но с ограничением' : 'указан среди несовместимостей'}: «${(ni.incompat_ni || '').replace(/\.$/, '')}».`,
+        act: `Заменить на совместимый${list.length ? ': ' + list.map(k => NI_PA_N[k] || k).join(', ') : ''}.` });
+      else if (!list.includes(e.id) && !ni.pa_any && list.length) ctx.add({ sev: 1, cat: 'form', src: ['ni'], type: isP ? 'Консервант' : 'Антиоксидант', ids: [r.id, e.id], item: r.id, rule: 'ni_pa_other',
+        t: `${who}: ${nm(e.id).toLowerCase()} не указан аптекой`, mech: `В карточке аптеки для этого вещества ${isP ? 'консерванты' : 'антиоксиданты'}: ${list.map(k => NI_PA_N[k] || k).join(', ')}. ${nm(e.id)} среди них нет — совместимость не подтверждена.`,
+        act: `Предпочесть ${list.filter(k => (isP ? NI_PRES : NI_ANTI).includes(k)).map(k => NI_PA_N[k]).join(', ') || list.map(k => NI_PA_N[k] || k).join(', ')} или проверить пробной партией.` });
+    });
+  });
 }

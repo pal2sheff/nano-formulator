@@ -273,7 +273,7 @@ function molLinks(ids) { return [...new Set(ids)].map(id => `<button type="butto
 function findingHTML(f) {
   const k = f.cat === 'syn' ? 'syn' : SEV[f.sev].k;
   return `<div class="fnd ${k}">
-    <div class="fnd-h">${f.cat === 'syn' ? sevBadge(0) : sevBadge(f.sev)}<span class="ty">${CAT[f.cat]} · ${esc(f.type)}</span></div>
+    <div class="fnd-h">${f.cat === 'syn' ? sevBadge(0) : sevBadge(f.sev)}<span class="ty">${CAT[f.cat]} · ${esc(f.type)}</span>${f.cat === 'syn' ? '' : srcTag(f)}</div>
     <div class="fnd-t">${esc(f.t)}</div>
     <p>${esc(f.mech)}</p>
     ${f.act ? `<div class="act"><b>${f.cat === 'syn' ? 'Применение' : 'Что сделать'}:</b> ${esc(f.act)}</div>` : ''}
@@ -474,8 +474,9 @@ function renderMol(id) {
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" data-addmol="${m.id}">${I.plus}Добавить в рецептуру</button></div>
     </div></div></div>`;
+  h += niCardHTML(m);
   // стабильность
-  h += `<div class="card"><div class="card-h"><h2>Стабильность</h2><span class="sub">окно pH в растворе: ${m.ph ? fmt(m.ph[0], 1) + '–' + fmt(m.ph[1], 1) : '—'}</span></div>
+  h += `<div class="card"><div class="card-h"><h2>Стабильность</h2><span class="sub">окно pH в растворе: ${m.ph ? fmt(m.ph[0], 1) + '–' + fmt(m.ph[1], 1) : '—'} (литература)${m.ni && m.ni.ph_ni ? ` · по данным аптеки: ${fmt(m.ni.ph_ni[0], 1)}–${fmt(m.ni.ph_ni[1], 1)}` : ''}</span></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px 24px">${Object.keys(stN).map(k => `<div class="stbar"><span>${stN[k]}</span><div class="bar"><i style="width:${(m.S[k] / 3 * 100) || 2}%;background:${stCol[m.S[k]]}"></i></div><span class="mono">${m.S[k]}</span></div>`).join('')}</div>
     <div class="est" style="margin-top:6px">0 — ${lev[0]}, 3 — ${lev[3]} чувствительно.</div>
     ${(m.alerts || []).length ? `<div style="margin-top:10px"><div class="small muted" style="margin-bottom:4px">Структурные признаки (SMARTS)</div><div class="pills">${m.alerts.map(a => `<span class="tag">${esc(ALERT_N[a] || a)}</span>`).join('')}</div></div>` : ''}
@@ -550,6 +551,8 @@ function renderMethod() {
 <h3>5. Разделение состава</h3>
 <p>Строится граф конфликтов: рёбра — химические/физические находки «Серьёзно» и выше, а также фармакологические конфликты, решаемые разным временем приёма. Вершины раскрашиваются жадным алгоритмом DSatur — каждая группа (цвет) не содержит конфликтов. Для каждой группы перебираются формы того же пути введения и выбирается форма с наименьшей взвешенной суммой находок (вес 1000 / 60 / 8 / 1 по тяжести).</p>
 
+<h3>6. Данные аптеки Nano Identica</h3>
+<p>Для 165 веществ в базу внесены технологические карточки аптеки: pH стабильности, допустимая температура, растворители, предельная концентрация, совместимые консерванты и антиоксиданты, несовместимости. Проверка рецептуры сверяет состав и с литературными данными, и с карточками аптеки. У каждой проблемы указан источник: <span class="srctag lit">литература</span> <span class="srctag ni">данные аптеки</span>. Если оба источника указывают на одну проблему, она показывается один раз с обеими метками, тяжесть — по более строгому. В номенклатуре аптеки витамин B14 — это PQQ, витамин E — синтетический DL-α-токоферол.</p>
 <h3>Ограничения</h3>
 <ul>
 <li>База содержит 260 веществ; для экстрактов свойства даны по маркерному соединению или качественно.</li>

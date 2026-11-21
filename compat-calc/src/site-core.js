@@ -106,3 +106,39 @@ function siteIncPairs(ids) {
   for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) { const l = siteInc(ids[i], ids[j]); if (l) out.push({ l, ids: [ids[i], ids[j]] }); }
   return out;
 }
+
+/* ---------- Карточка «Данные аптеки Nano Identica» (блок ni записи) — общая для обеих версий ---------- */
+const NI_SOLV_RU = { water: 'вода', ethanol: 'этанол', pg: 'пропиленгликоль', glycerin: 'глицерин', oil: 'масла', dmso: 'ДМСО', peg: 'ПЭГ', ps80: 'полисорбат', org: 'органические растворители' };
+function niRows(m) {
+  const ni = m && m.ni; if (!ni) return [];
+  const R = [];
+  const rng = r => r ? fmt(r[0], 1) + '–' + fmt(r[1], 1) : '';
+  if (ni.alias) R.push(['Трактовка аптеки', ni.alias]);
+  if (ni.name) R.push(['Название в справочнике', ni.name + (ni.eds > 1 ? ` (редакций: ${ni.eds}, сведены)` : '')]);
+  if (ni.inci) R.push(['INCI', ni.inci]);
+  if (ni.cas) R.push(['CAS', ni.cas]);
+  if (ni.organo) R.push(['Органолептика', [['Цвет', ni.organo.c], ['Вкус', ni.organo.t], ['Запах', ni.organo.s]].filter(a => a[1]).map(a => a[0] + ': ' + a[1]).join(' · ')]);
+  if (ni.storage) R.push(['Условия хранения', ni.storage]);
+  if (ni.state) R.push(['Физическое состояние', ni.state]);
+  if (ni.mw) R.push(['Молярная масса', fmt(ni.mw, 2) + ' г/моль' + (m.mw && Math.abs(ni.mw - m.mw) / m.mw > 0.05 ? ` (в базе ${fmt(m.mw, 2)} — другая форма)` : '')]);
+  const more = (t, n) => t && t.replace(/[\d,.\s–-]|°C/g, '').length > n ? t : '';   // текст карточки, если в нём больше, чем число
+  if (ni.ph_tx || ni.ph_ni) R.push(['pH стабильности', ni.ph_ni ? [rng(ni.ph_ni) + (m.ph ? ` (литература: ${rng(m.ph)})` : ''), more(ni.ph_tx, 2)].filter(Boolean).join('. ') : ni.ph_tx]);
+  if (ni.heat_tx || ni.heat_ni) R.push(['Термолабильность', ni.heat_ni ? [`не выше ${ni.heat_ni} °C`, more(ni.heat_tx, 14)].filter(Boolean).join('. ') : ni.heat_tx]);
+  if (ni.solv_tx) R.push(['Оптимальные растворители', ni.solv_tx]);
+  if (ni.insol_tx) R.push(['Нерастворим / разрушается', ni.insol_tx]);
+  if (ni.conc_max) R.push(['Предельная концентрация', (ni.conc_max.v ? `≈ ${fmt(ni.conc_max.v, 1)} мг/мл (${NI_SOLV_RU[ni.conc_max.solv] || ni.conc_max.solv}). ` : '') + ni.conc_max.tx]);
+  if (ni.pa_tx) R.push(['Консерванты и антиоксиданты', ni.pa_tx]);
+  if (ni.incompat_ni) R.push(['Ограничения / несовместимости', ni.incompat_ni]);
+  return R;
+}
+function niCardHTML(m, opt = {}) {
+  const R = niRows(m); if (!R.length) return '';
+  const body = `<div class="nibox">${R.map(([k, v]) => `<div><b>${esc(k)}</b>${esc(v)}</div>`).join('')}</div>
+    <div class="nisrc">Источник: технологические карточки аптеки Nano Identica. Эти значения используются при проверке рецептуры вместе с литературными; у каждой проблемы указан источник.</div>`;
+  if (opt.collapsed) return `<details class="card nicard"><summary><h2>Данные аптеки Nano Identica</h2></summary>${body}</details>`;
+  return `<div class="card nicard"><div class="card-h"><h2>Данные аптеки Nano Identica</h2><span class="sub">технологическая карточка</span></div>${body}</div>`;
+}
+function srcTag(f) {
+  const s = f && f.src; if (!s || !s.length) return '';
+  return s.map(k => `<span class="srctag ${k}">${k === 'ni' ? 'данные аптеки' : 'литература'}</span>`).join('');
+}
