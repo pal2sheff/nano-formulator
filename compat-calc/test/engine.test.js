@@ -156,8 +156,8 @@ test('Бисглицинат железа: окисляет витамин C в 
 });
 test('Новые вещества: структура и дескрипторы RDKit, синонимы находятся', () => {
   for (const id of ['nag', 'b2', 'succinic', 'butyrate', 'aucubin', 'mgthr']) assert.ok(A.BY[id].svg && A.BY[id].tpsa != null, id);
-  assert.ok(Object.values(A.BY).filter(m => (m.syn || '').includes('Гриффония')).some(m => m.id === 'htp'));
-  assert.equal(Object.keys(A.BY).length, 302);
+  assert.ok(A.BY.griffonia && A.BY.griffonia.base === 'htp', 'экстракт гриффонии — отдельная запись с действующим веществом 5-HTP');
+  assert.equal(Object.keys(A.BY).length, 307);
   for (const id of ['methblue', 'eugenol', 'dmannose', 'betaala']) assert.ok(A.BY[id].svg, id);
 });
 
@@ -226,4 +226,15 @@ test('Данные аптеки: растворитель и консерван�
   assert.ok(!has(b12, f => f.rule === 'ni_pa_other' && pair(f, 'mecbl', 'nabenz')), 'бензоат аптека указывает как совместимый');
   const v = run('drops', [['vite', 50]], { vdose: 1 });
   assert.ok(has(v, f => f.ids[0] === 'vite' && f.src.includes('ni') && f.cat === 'phys'), 'аптека: витамин E нерастворим в воде');
+});
+
+/* ---------- Регрессия по аудиту ---------- */
+test('Аудит: трансдермальная основа Pentravan — липофильные гормоны без ложной «нерастворимости в воде»; МЕ витамина E по DL-форме', () => {
+  assert.match(A.FORMS.td.n, /Pentravan/);
+  for (const id of ['testo', 'prog', 'e2', 'dhea', 'preg']) {
+    const r = run('td', [[id, 25]], { mass: 1 });
+    assert.ok(!has(r, f => f.rule === 'ni_solv'), id);
+  }
+  const v = run('caps', [['vite', 100, 'МЕ']]);
+  assert.ok(Math.abs(v.rows.find(r => r.id === 'vite').mg - 91) < 0.5, '100 МЕ DL-α-токоферола = 91 мг');
 });

@@ -284,11 +284,13 @@ const ENZ = [
   ['Метилирование', /NNMT|BHMT|метилтрансфераз|S-метилир|метионинсинтаз|деметилир/],
   ['Почки', /почки/]
 ];
+// формы и экстракты с действующим веществом base наследуют его мишени и пути метаболизма
+DB.forEach(m => { if (m.base && !PK[m.id] && PK[m.base]) PK[m.id] = PK[m.base]; });
 const ENZ_N = { 'Метилирование': 'Метилирование (SAMe, NNMT, BHMT)', 'Почки': 'Почки (выведение)', 'UGT': 'UGT (глюкуронидация)', 'SULT': 'SULT (сульфатирование)', 'COMT': 'COMT', 'MAO': 'MAO', 'AADC': 'AADC (декарбоксилаза)', 'GST': 'GST (глутатион-конъюгация)', 'P-gp': 'P-гликопротеин', 'OATP': 'OATP (транспорт)' };
 const TAG_INH = { cyp3a4inh: 'CYP3A4', cyp3a4inh_mild: 'CYP3A4 (слабо)', cyp2d6inh: 'CYP2D6', pgpinh: 'P-gp' };
 const TAG_IND = { cyp1a2ind: 'CYP1A2' };
 function pkOf(id) {
-  const p = PK[id]; if (!p) return null;
+  const p = PK[id] || (BY[id] && BY[id].base && PK[BY[id].base]); if (!p) return null;
   const m = BY[id];
   const inh = PK_LIST(p[3]), ind = PK_LIST(p[4]);
   for (const t in TAG_INH) if (m.T.has(t) && !inh.some(x => PK_KEY(x) === PK_KEY(TAG_INH[t]))) inh.push(TAG_INH[t]);
@@ -322,7 +324,7 @@ function pkLoad(ids, doseMg) {
     const note = [];
     if (r.inh.some(x => r.sub.some(s => s.id !== x.id))) note.push('ингибитор в составе — концентрация субстратов может расти');
     if (r.ind.some(x => r.sub.some(s => s.id !== x.id))) note.push('индуктор в составе — эффект субстратов может ослабевать');
-    if (r.sub.length >= 2) note.push('конкуренция субстратов за фермент');
+    if (r.sub.length >= 2) note.push('общий путь метаболизма: конкуренция возможна, значимость зависит от доз');
     return Object.assign(r, { w, lvl, note });
   }).filter(r => r.sub.length || r.inh.length || r.ind.length);
   rows.sort((a, b) => b.lvl - a.lvl || b.sub.length - a.sub.length || b.inh.length - a.inh.length);
@@ -332,4 +334,5 @@ function pkLoad(ids, doseMg) {
   const shared = Object.entries(tgt).filter(([, s]) => s.size >= 2).map(([k, s]) => ({ k, ids: [...s] })).sort((a, b) => b.ids.length - a.ids.length);
   return { rows, shared };
 }
-const LOAD_N = { 3: { k: 'major', t: 'Высокая' }, 2: { k: 'mod', t: 'Умеренная' }, 1: { k: 'minor', t: 'Низкая' }, 0: { k: 'minor', t: '—' } };
+// уровни пересечения путей (число общих субстратов + ингибиторы/индукторы), а не измеренная ферментативная нагрузка
+const LOAD_N = { 3: { k: 'major', t: 'Выраженное' }, 2: { k: 'mod', t: 'Умеренное' }, 1: { k: 'minor', t: 'Один субстрат' }, 0: { k: 'minor', t: '—' } };

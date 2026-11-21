@@ -27,13 +27,14 @@ const effOf = m => (m.pharm && (m.pharm.eff || m.pharm.pc)) || '';
 
 /* ---------- Состояние ---------- */
 // S.items — позиции состава в терминах сайта: {n: название в конструкторе, amt: суточная доза в единицах сайта}
-let S = { form: 'КП', items: [], cond: [], unlim: false, th: 0, cat: 0, q: '' }, CUR_MOL = null, LAST = null, LASTF = null, LASTRES = null;
+let S = { form: 'КП', items: [], cond: [], unlim: false, th: 0, cat: 0, q: '' }, CUR_MOL = null, LAST = null, LASTF = null, LASTRES = null, LASTV = null;
 const idsOf = () => [...new Set(S.items.map(it => sid(it.n)))];
 function save() { try { localStorage.setItem('cc_doc2', JSON.stringify(S)); } catch (e) {} }
 function restore() {
   try {
     const s = JSON.parse(localStorage.getItem('cc_doc2') || 'null');
-    if (s && SFORM[s.form] && Array.isArray(s.items)) S = Object.assign(S, s, { items: s.items.filter(it => SITE.mols[it.n]), cond: (s.cond || []).filter(c => COND_N[c]), q: '' });
+    if (s && SFORM[s.form] && Array.isArray(s.items)) S = Object.assign(S, { form: s.form, items: sanitizeItems(s.items, s.form), cond: Array.isArray(s.cond) ? s.cond.filter(c => COND_N[c]) : [], unlim: s.unlim === true,
+      th: Number.isInteger(s.th) && s.th >= 0 && s.th < SITE.tree.length ? s.th : 0, cat: Number.isInteger(s.cat) && s.cat >= 0 ? s.cat : 0, q: '' });
   } catch (e) {}
 }
 
@@ -118,12 +119,13 @@ function addSite(n) {
   if (!availIn(n, S.form)) { toast(n + ' — нет в форме «' + SFORM[S.form].n + '»'); return; }
   const i = S.items.findIndex(it => it.n === n);
   if (i >= 0) { S.items.splice(i, 1); update(); return; } // повторное нажатие — убрать, как на сайте
-  if (S.items.some(it => sid(it.n) === sid(n))) toast('То же вещество уже в составе: ' + S.items.find(it => sid(it.n) === sid(n)).n);
-  S.items.push({ n, amt: siteDose(n, S.form).prof }); update();
+  const same = sameSubstance(S.items, n); // одно вещество под двумя названиями — одна позиция, доза задаётся в ней
+  if (same) { toast(`«${n}» — то же вещество, что «${same.n}» в составе: измените дозу там`); return; }
+  const d = siteDose(n, S.form); S.items.push({ n, amt: defDose(d), u: d.u }); update();
 }
 function addId(id) { const n = (SITE_IDS[id] || []).find(x => availIn(x, S.form)); if (n) addSite(n); else toast(nm(id) + ' — нет в выбранной форме'); }
 function setForm(code) {
-  S.form = code; S.items.forEach(it => { const d = siteDose(it.n, code); if (d) it.amt = d.prof; });
+  const from = S.form; S.form = code; S.items.forEach(it => keepDose(it, code, from)); // назначенная доза не меняется, если единицы те же
   const th = thList(code); if (!th.some(x => x.i === S.th)) { S.th = th.length ? th[0].i : 0; S.cat = 0; }
   update();
 }
@@ -175,7 +177,7 @@ function renderItems() {
       <div class="drow2"><input type="range" min="0" max="${maxOf(d)}" step="${stepOf(d)}" value="${it.amt}" data-amt="${k}" aria-label="Суточная доза">
       <span class="dval"><input type="number" min="0" max="${maxOf(d)}" step="${stepOf(d)}" value="${it.amt}" data-amtn="${k}" aria-label="Суточная доза"><span class="u">${esc(u)}</span></span></div>
       ${zoneBar(d, +it.amt)}
-      <div class="dmeta"><span class="zone ${z || ''}">${z ? ZONES[z] : 'доза не указана'}</span><span class="muted">0–${fmt(maxOf(d), 2)} ${esc(u)}${S.unlim ? ' (ограничение снято)' : ''}</span></div>
+      <div class="dmeta"><span class="zone ${z || ''}">${esc(zoneName(z, it.n))}</span><span class="muted">0–${fmt(maxOf(d), 2)} ${esc(u)}${S.unlim ? ' (ограничение снято)' : ''}</span></div>
       ${org.length ? `<div class="dorg">${esc(org.join('; '))}</div>` : ''}
     </div>`;
   }).join('') : '<div class="empty">Выберите форму, вид терапии, категорию и молекулы</div>';
@@ -202,7 +204,7 @@ function interHTML(f) {
     <details class="why"><summary>Почему</summary><p>${esc(f.mech)}</p></details></div>`;
 }
 function synHTML(f) {
-  return `<div class="fnd syn"><div class="fnd-h">${badge('syn', 'Синергия')}<span class="ty">${esc(f.type)}</span></div>
+  return `<div class="fnd syn"><div class="fnd-h">${badge('syn', f.add ? 'Дополнение эффектов' : 'Синергия')}<span class="ty">${esc(f.type)}</span></div>
     <div class="fnd-t">${mlinks(f.ids)}</div><p>${esc(f.mech)}</p></div>`;
 }
 function renderOut(r) {
@@ -214,18 +216,15 @@ function renderOut(r) {
   // совместимость в выбранной форме (химия и технология — простыми словами) + таблица аптеки
   const FN = SFORM[S.form].n;
   const ffs = LASTRES ? formFindings(LASTRES).sort((a, b) => b.sev - a.sev) : [];
-  const incl = []; const ids = r.ids;
-  for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) { const l = siteInc(ids[i], ids[j]); if (l) incl.push({ l, ids: [ids[i], ids[j]] }); }
-  const fmax = Math.max(0, ...ffs.map(f => f.sev), ...incl.map(x => x.l === 'high' ? 4 : 2));
-  if (fmax >= 4 && v.k !== 'crit') v = { k: 'crit', t: 'Несовместимо в форме «' + FN + '»', d: '' };
-  else if (fmax === 3 && (v.k === 'ok' || v.k === 'mod')) v = { k: 'major', t: 'Проблемы в форме «' + FN + '»', d: '' };
+  const incl = siteIncPairs(r.ids);
+  v = finalVerdict(r, ffs, incl, FN); LASTV = v; // один итог для экрана и для копируемого заключения
   const pc = r.patient.reduce((a, c) => a + c.items.filter(x => x.sev >= 2 && !isFallback(x)).length, 0);
   const i3 = r.inter.filter(f => f.sev === 3).length, i2 = r.inter.filter(f => f.sev === 2).length;
   let h = `<div class="card verdict ${v.k}">
     <div class="v-top"><div class="v-title">${(I[v.k] || '').replace('<svg ', '<svg class="vi" ')}<span class="big">${v.t}</span></div>
     <button class="btn primary" id="copyBtn" type="button">${I.copy}Копировать</button></div>
     ${(() => { const F = FF; const b = F && F.rows.filter(x => x.rating === 'best'); return b && b.length ? `<div class="focus"><span class="muted">Лучшие формы:</span> <b>${b.map(x => esc(x.n)).join(', ')}</b></div>` : (F && F.split ? '<div class="focus"><span class="muted">Формы:</span> <b>нужно разделить состав</b></div>' : ''); })()}
-    <div class="counts">${r.syn.length ? badge('syn', 'Синергия · ' + r.syn.length) : ''}${pc ? badge('crit', 'Противопоказания · ' + pc) : ''}${i3 ? badge('major', 'Серьёзно · ' + i3) : ''}${i2 ? badge('mod', 'Умеренно · ' + i2) : ''}</div>
+    <div class="counts">${r.syn.some(f => !f.add) ? badge('syn', 'Синергия · ' + r.syn.filter(f => !f.add).length) : ''}${r.syn.some(f => f.add) ? badge('syn', 'Дополнение · ' + r.syn.filter(f => f.add).length) : ''}${pc ? badge('crit', 'Противопоказания · ' + pc) : ''}${i3 ? badge('major', 'Серьёзно · ' + i3) : ''}${i2 ? badge('mod', 'Умеренно · ' + i2) : ''}</div>
   </div>`;
 
   // совместимость в форме
@@ -239,10 +238,10 @@ function renderOut(r) {
 
   // синергия — всегда, сгруппирована по типу + подсказки
   const byType = {};
-  r.syn.forEach(f => { (byType[f.type] = byType[f.type] || { mech: f.mech, pairs: [] }).pairs.push(f.ids); });
+  r.syn.forEach(f => { (byType[f.type] = byType[f.type] || { mech: f.mech, pairs: [], add: true }).pairs.push(f.ids); if (!f.add) byType[f.type].add = false; });
   const sug = suggest(r, 30).filter(x => (SITE_IDS[x.id] || []).some(n => availIn(n, S.form))).slice(0, 8);
   h += `<div class="card syn-list"><div class="card-h"><h2>Синергия</h2></div>
-    ${Object.keys(byType).length ? `<div class="flist">${Object.entries(byType).map(([t, g]) => `<div class="fnd syn"><div class="fnd-h">${badge('syn', esc(t))}</div>
+    ${Object.keys(byType).length ? `<div class="flist">${Object.entries(byType).sort((a, b) => a[1].add - b[1].add).map(([t, g]) => `<div class="fnd syn"><div class="fnd-h">${badge('syn', esc(t))}${g.add ? '<span class="ty">дополнение эффектов (предполагаемое)</span>' : '<span class="ty">синергия</span>'}</div>
       <div class="fnd-t">${g.pairs.map(p => mlinks(p).replace('</button>, <button', '</button> + <button')).join('<span class="muted"> · </span>')}</div>
       ${g.pairs.length === 1 ? `<details class="why"><summary>Почему</summary><p>${esc(g.mech)}</p></details>` : ''}</div>`).join('')}</div>`
       : `<div class="muted small">Между выбранными веществами известных синергий нет.</div>`}
@@ -300,20 +299,20 @@ function pkHTML(r) {
     return `<div class="pkrow"><div class="pkn">${esc(x.n)}</div><div class="pkl"><span class="lvl l${lv}">${LOAD_N[lv].t}</span></div>
     <div class="pkm">${x.sub.map(s => chip(s)).join('')}${x.inh.length ? `<span class="pkt">тормозит:</span>${x.inh.map(s => chip(s, 'crit')).join('')}` : ''}${x.ind.length ? `<span class="pkt">ускоряет:</span>${x.ind.map(s => chip(s, 'syn')).join('')}` : ''}
     ${x.note.length ? `<div class="pkno">${esc(x.note.join('; '))}</div>` : ''}</div></div>`; };
-  return `<div class="card"><div class="card-h"><h2>Метаболическая нагрузка</h2></div>
+  return `<div class="card"><div class="card-h"><h2>Потенциальное пересечение путей метаболизма</h2></div>
     ${main.length ? `<div class="pk">${main.map(row).join('')}</div>` : '<div class="muted small">Значимых путей метаболизма у состава нет.</div>'}
     ${inhOnly.length ? `<div class="snote"><b>Влияет на ферменты других препаратов пациента:</b> ${inhOnly.map(x => `${esc(x.k)} — ${x.inh.length ? 'тормозят ' + x.inh.map(s => esc(sn(s.id))).join(', ') : ''}${x.ind.length ? (x.inh.length ? '; ' : '') + 'ускоряют ' + x.ind.map(s => esc(sn(s.id))).join(', ') : ''}`).join('; ')}</div>` : ''}
-    ${L.shared.length ? `<div class="sugg"><div class="sugg-h">Общие мишени (эффекты суммируются)</div>${L.shared.map(t => `<div class="pkrow2"><b>${esc(t.k)}</b> — ${t.ids.map(id => `<button type="button" class="mlink" data-mol="${id}">${esc(sn(id))}</button>`).join(', ')}</div>`).join('')}</div>` : ''}
-    <div class="muted small" style="margin-top:8px">* минорный путь или слабое действие (часто — данные in vitro).${kid ? ' Нагрузка на почки и печень учитывает отмеченные состояния.' : ''}</div>
+    ${L.shared.length ? `<div class="sugg"><div class="sugg-h">Общие мишени (возможно суммирование эффектов)</div>${L.shared.map(t => `<div class="pkrow2"><b>${esc(t.k)}</b> — ${t.ids.map(id => `<button type="button" class="mlink" data-mol="${id}">${esc(sn(id))}</button>`).join(', ')}</div>`).join('')}</div>` : ''}
+    <div class="muted small" style="margin-top:8px">* минорный путь или слабое действие (часто — данные in vitro). Уровень показывает, сколько веществ состава используют один путь и есть ли среди них ингибитор или индуктор; дозы и ёмкость фермента не учитываются — это не измеренная ферментативная нагрузка.${kid ? ' Для почек и печени учтены отмеченные состояния.' : ''}</div>
   </div>`;
 }
 function formsHTML(FF, compact) {
   const groups = ['best', 'ok', 'limit', 'no'].map(k => [k, FF.rows.filter(r => r.rating === k)]).filter(g => g[1].length);
   const row = r => `<div class="frow ${r.rating}"><div class="fn">${esc(r.n)}${r.note ? ` <span class="muted small">· ${esc(r.note)}</span>` : ''}</div><div class="fr">${esc(r.reasons.join('; '))}</div></div>`;
-  return `<div class="card"><div class="card-h"><h2>Формы доставки</h2>${!compact ? '<span class="sub">другие формы — по профилактическим дозам сайта</span>' : ''}</div>
+  return `<div class="card"><div class="card-h"><h2>Формы доставки</h2>${!compact ? '<span class="sub">в других формах — тот же уровень назначенной дозы по диапазону аптеки</span>' : ''}</div>
     <div class="fgroups">${groups.map(([k, rs]) => `<div class="fgroup">${badge(RATING[k].k, RATING[k].t)}<div class="flist2">${rs.map(row).join('')}</div></div>`).join('')}</div>
     ${FF.split ? `<div class="snote"><b>Целиком ни одна форма не подходит. Разделить:</b> ${FF.split.map((g, i) => `${i + 1}) ${g.ids.map(id => esc(sn(id))).join(', ')} — ${esc(formName(g.form))}`).join('; ')}</div>` : ''}
-    ${FF.na.length ? `<div class="muted small" style="margin-top:10px">Не применяется для этого состава: ${FF.na.map(f => esc(formName(f))).join(', ')}</div>` : ''}
+    ${FF.na.length ? `<div class="muted small" style="margin-top:10px">Нет в каталоге аптеки для этого состава (данных нет — это не противопоказание): ${FF.na.map(f => esc(formName(f)) + (FF.naWhy && FF.naWhy[f] && FF.naWhy[f] !== 'нет в каталоге' ? ' (' + esc(FF.naWhy[f].replace('нет в каталоге: ', 'нет: ')) + ')' : '')).join(', ')}</div>` : ''}
   </div>`;
 }
 function isFallback(x) { return x.c === 'preg' && x.sev === 2 && /недостаточно/.test(x.t); }
@@ -348,9 +347,9 @@ function renderMol(id) {
     if (body) h += `<div class="card"><div class="card-h"><h2>Мишени и метаболизм</h2></div>${body}</div>`; }
   (SITE_IDS[id] || []).forEach(n => {
     h += `<div class="card"><div class="card-h"><h2>В конструкторе: ${esc(n)}</h2><span class="sub">${esc((SITE_PATH[n] || []).map(p => p.join(' → ')).join('; '))}</span></div>
-      <div class="tbl-wrap"><table class="t"><thead><tr><th>Форма</th><th class="num">Субклин.</th><th class="num">Профилакт.</th><th class="num">Терапевт.</th><th class="num">Максимум</th></tr></thead><tbody>
+      <div class="tbl-wrap"><table class="t"><thead><tr><th>Форма</th><th class="num">Субклин.</th><th class="num">Профилакт.</th><th class="num">Терапевт.</th><th class="num">Максимум аптеки</th></tr></thead><tbody>
       ${SITE.forms.map(f => { const d = siteDose(n, f.code); return d ? `<tr><td>${esc(f.n)}</td><td class="num mono">${fmt(d.sub, 3)}</td><td class="num mono">${fmt(d.prof, 3)}</td><td class="num mono">${fmt(d.ther, 3)}</td><td class="num mono">${fmt(d.max, 3)} ${esc(UNIT_N[d.u] || d.u)}</td></tr>` : ''; }).join('')}
-      </tbody></table></div><div class="muted small" style="margin-top:6px">Суточные дозы из конструктора заказов аптеки.</div></div>`;
+      </tbody></table></div><div class="muted small" style="margin-top:6px">Суточные дозы из конструктора заказов аптеки. «Максимум аптеки» — технологический предел позиции в форме, а не клинически безопасная доза.${(() => { const d = SITE.forms.map(f => siteDose(n, f.code)).find(x => x && x.ul != null); return d ? ` Верхний допустимый уровень потребления (UL, IOM): ${fmt(d.ul, 4)} ${esc(UNIT_N[d.u] || d.u)}/сут — выше только по показаниям под контролем.` : ''; })()}</div></div>`;
   });
   h += `<div class="card"><div class="card-h"><h2>Хорошо сочетается</h2><span class="sub">${p.syn.length}</span></div>${p.syn.length ? `<div class="pills">${chips(p.syn, () => 'syn')}</div>` : '<div class="muted small">Известных синергий в базе нет</div>'}</div>`;
   h += `<div class="card"><div class="card-h"><h2>Взаимодействия</h2><span class="sub">${p.inter.length}</span></div>${p.inter.length ? `<div class="pills">${chips(p.inter, x => DOC_SEV[x.sev].k)}</div><div class="legend"><span><i style="background:var(--major)"></i>серьёзно</span><span><i style="background:var(--mod)"></i>умеренно</span><span><i style="background:var(--minor-bg);outline:1px solid var(--minor)"></i>учесть</span><span class="muted">наведите — тип взаимодействия</span></div>` : '<div class="muted small">Значимых взаимодействий в базе нет</div>'}</div>`;
@@ -374,7 +373,7 @@ function renderMethod() {
 <h3>Взаимодействия</h3><p>Суммирование эффектов (гипогликемический, антиагрегантный, гипотензивный, седативный, стимулирующий, серотонинергический, нагрузка на печень), антагонизм и противоположное время приёма, конкуренция за всасывание (железо и кальций, транспорт аминокислот), ингибирование ферментов метаболизма (CYP3A4, CYP1A2, P-гликопротеин).</p>
 <p>Тяжесть: <b>Серьёзно</b> — изменить состав или разделить приём; <b>Умеренно</b> — допустимо с контролем; <b>Учесть</b> — справочно.</p>
 <h3>Противопоказания</h3><p>Для 17 клинических ситуаций (беременность, антикоагулянты, сахароснижающая терапия, гипертензия, антидепрессанты, гормонозависимые опухоли, щитовидная железа, печень, почки и др.) у каждого вещества отмечено: <b>противопоказано</b>, <b>с осторожностью</b> или <b>учесть</b>. Отмеченные состояния пациента выносятся в начало и определяют вердикт.</p>
-<h3>Мишени и метаболическая нагрузка</h3><p>Для каждого вещества указаны рецепторы, ферменты-мишени, пути метаболизма и выведения, а также ферменты, которые вещество тормозит или ускоряет (DrugBank, Natural Medicines, обзоры по фармакокинетике; данные in vitro помечены). Нагрузка на фермент считается по числу веществ состава, которые через него выводятся (основной путь — 1, минорный — 0,5): 1 — низкая, 2 — умеренная, 3 и более — высокая. Если в составе есть ингибитор этого фермента, нагрузка повышается на ступень. Для высокоёмких путей (глюкуронидация, сульфатирование, почки) нагрузка не выше умеренной; при отмеченной ХБП нагрузка на почки повышается. Ферменты, которые состав тормозит или ускоряет без собственных субстратов, показаны отдельно — это важно для других препаратов пациента. Общие мишени — рецепторы и ферменты, на которые действуют два и более вещества.</p>
+<h3>Мишени и пересечение путей метаболизма</h3><p>Для каждого вещества указаны рецепторы, ферменты-мишени, пути метаболизма и выведения, а также ферменты, которые вещество тормозит или ускоряет (DrugBank, Natural Medicines, обзоры по фармакокинетике; данные in vitro помечены). Показатель «Потенциальное пересечение путей метаболизма» считает, сколько веществ состава выводятся через один фермент (основной путь — 1, минорный — 0,5): 1 — один субстрат, 2 — умеренное, 3 и более — выраженное пересечение; ингибитор этого фермента в составе повышает уровень на ступень. Дозы, сродство и ёмкость фермента не учитываются, поэтому это сигнал для проверки, а не измеренная ферментативная нагрузка. Для высокоёмких путей (глюкуронидация, сульфатирование, почки) уровень не выше умеренного; при отмеченной ХБП учитываются почки. Ферменты, которые состав тормозит или ускоряет без собственных субстратов, показаны отдельно — это важно для других препаратов пациента. Общие мишени — рецепторы и ферменты, на которые действуют два и более вещества.</p>
 <h3>Схема приёма</h3><p>Время суток и связь с едой — по фармакологии (стимуляторы утром, седативные вечером, жирорастворимые с едой). Конфликтующие пары разносятся по разным приёмам (раскраска графа конфликтов).</p>
 <h3>Ограничения</h3><ul><li>Справочная оценка по базе из 262 активных веществ; не учитываются дозы, индивидуальные особенности и полный список принимаемых препаратов.</li><li>Перечень противопоказаний не исчерпывающий — для рецептурных препаратов действует инструкция.</li><li>Решение о назначении принимает врач.</li></ul>
 <h3>Источники</h3><ul><li>Natural Medicines Comprehensive Database; Stockley's Drug Interactions; Stockley's Herbal Medicines Interactions.</li><li>Инструкции по медицинскому применению рецептурных препаратов.</li><li>Обзорные публикации по отдельным сочетаниям (Shoba 1998 — пиперин и куркумин; Sekhar 2021 — GlyNAC и др.).</li></ul>`;
@@ -384,15 +383,16 @@ function pkReport(r) {
   if (!r || !r.ids.length) return '';
   const L = pkLoad(r.ids); const rows = L.rows.filter(x => x.sub.length && x.lvl >= 2);
   if (!rows.length && !L.shared.length) return '';
-  const out = ['', 'Метаболическая нагрузка:'];
+  const out = ['', 'Потенциальное пересечение путей метаболизма (по числу общих субстратов, без учёта доз):'];
   rows.forEach(x => out.push(`  ${x.n} — ${LOAD_N[x.lvl].t.toLowerCase()}: ${x.sub.map(s => sn(s.id)).join(', ')}${x.inh.length ? '; тормозят: ' + x.inh.map(s => sn(s.id)).join(', ') : ''}${x.ind.length ? '; ускоряют: ' + x.ind.map(s => sn(s.id)).join(', ') : ''}`));
   if (L.shared.length) out.push('  Общие мишени: ' + L.shared.map(t => `${t.k} (${t.ids.map(sn).join(', ')})`).join('; '));
   return '\n' + out.join('\n');
 }
 function formsReport(F) {
   if (!F) return '';
-  const L = ['', 'Формы доставки' + (F.typical ? ' (где доза не указана — по типичной)' : '') + ':'];
+  const L = ['', 'Формы доставки' + (F.typical ? ' (в других формах — эквивалентный уровень дозы по диапазону аптеки)' : '') + ':'];
   ['best', 'ok', 'limit', 'no'].forEach(k => { const rs = F.rows.filter(r => r.rating === k); if (rs.length) L.push(`  ${RATING[k].t}: ` + rs.map(r => r.n + (r.reasons.length && k !== 'best' ? ` (${r.reasons[0]})` : '')).join('; ')); });
+  if (F.na && F.na.length) L.push('  Нет в каталоге аптеки (не противопоказание): ' + F.na.map(f => formName(f) + (F.naWhy && F.naWhy[f] && F.naWhy[f] !== 'нет в каталоге' ? ' (' + F.naWhy[f].replace('нет в каталоге: ', 'нет: ') + ')' : '')).join('; '));
   if (F.split) L.push('  Разделить: ' + F.split.map((g, i) => `${i + 1}) ${g.ids.map(sn).join(', ')} — ${formName(g.form).toLowerCase()}`).join('; '));
   return '\n' + L.join('\n');
 }
@@ -435,14 +435,19 @@ function init() {
     const b = e.target.closest('[data-sn]'); if (b) addSite(b.dataset.sn);
   });
   $('#q').addEventListener('input', e => { S.q = e.target.value; renderCtor(); });
-  $('#unlim').addEventListener('change', e => { S.unlim = e.target.checked; S.items.forEach(it => { const d = siteDose(it.n, S.form); if (d && it.amt > maxOf(d)) it.amt = maxOf(d); }); update(); });
+  $('#unlim').addEventListener('change', e => {
+    S.unlim = e.target.checked; const cut = [];
+    S.items.forEach(it => { const d = siteDose(it.n, S.form); if (d && it.amt > maxOf(d)) { it.amt = maxOf(d); cut.push(it.n); } });
+    if (cut.length) toast('Доза снижена до максимума аптеки: ' + cut.join(', '));
+    update();
+  });
   $('#items').addEventListener('click', e => { const r = e.target.closest('[data-rmn]'); if (r) { S.items = S.items.filter(it => it.n !== r.dataset.rmn); update(); } });
   $('#items').addEventListener('input', e => {
     const k = e.target.dataset.amt ?? e.target.dataset.amtn; if (k == null) return;
-    const it = S.items[+k], d = siteDose(it.n, S.form); it.amt = Math.max(0, Math.min(maxOf(d), +e.target.value || 0));
+    const it = S.items[+k], d = siteDose(it.n, S.form); it.amt = Math.max(0, Math.min(maxOf(d), +e.target.value || 0)); it.u = d.u;
     const card = e.target.closest('.dcard');
     card.querySelectorAll('[data-amt],[data-amtn]').forEach(x => { if (x !== e.target || +x.value > it.amt) x.value = it.amt; });
-    const z = zoneOf(it.amt, d); const zt = card.querySelector('.zone'); zt.className = 'zone ' + (z || ''); zt.textContent = z ? ZONES[z] : 'доза не указана';
+    const z = zoneOf(it.amt, d); const zt = card.querySelector('.zone'); zt.className = 'zone ' + (z || ''); zt.textContent = zoneName(z, it.n);
     card.querySelector('.zbar').outerHTML = zoneBar(d, it.amt);
     save(); clearTimeout(window._dt); window._dt = setTimeout(() => update(true), 300);
   });
@@ -454,7 +459,7 @@ function init() {
     const a = e.target.closest('[data-addmol]'); if (a) { addId(a.dataset.addmol); history.replaceState(null, '', location.pathname + location.search); route(); return; }
     const ad = e.target.closest('[data-add]'); if (ad) { addId(ad.dataset.add); return; }
     const m = e.target.closest('[data-mol]'); if (m) { location.hash = '#card/' + m.dataset.mol; return; }
-    if (e.target.closest('#copyBtn')) copyText(siteReport() + '\n\n' + docReport(LAST) + formsReport(LASTF) + pkReport(LAST));
+    if (e.target.closest('#copyBtn')) copyText(siteReport() + '\n\n' + docReport(LAST, LASTV) + formsReport(LASTF) + pkReport(LAST));
   });
   document.addEventListener('mouseover', e => { const t = e.target.closest('[title].cpill'); if (t && t.title) { t.dataset.t = t.title; t.removeAttribute('title'); } const d = e.target.closest('[data-t]'); if (d) { tip.textContent = d.dataset.t; tip.hidden = false; } });
   document.addEventListener('mousemove', e => { if (tip.hidden) return; if (!e.target.closest('[data-t]')) { tip.hidden = true; return; } const w = tip.offsetWidth, hh = tip.offsetHeight; let x = e.clientX + 14, y = e.clientY + 14; if (x + w > innerWidth - 8) x = e.clientX - w - 14; if (y + hh > innerHeight - 8) y = e.clientY - hh - 14; tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; });
@@ -463,7 +468,7 @@ function init() {
 }
 function siteReport() {
   const L = ['ЗАКАЗ: ' + SFORM[S.form].n];
-  S.items.forEach((it, k) => { const d = siteDose(it.n, S.form); L.push(`  ${k + 1}. ${it.n} — ${d ? fmt(+it.amt, 3) + ' ' + (UNIT_N[d.u] || d.u) + '/сут (' + (ZONES[zoneOf(+it.amt, d)] || '—') + ')' : 'нет в этой форме'}`); });
+  S.items.forEach((it, k) => { const d = siteDose(it.n, S.form); L.push(`  ${k + 1}. ${it.n} — ${d ? fmt(+it.amt, 3) + ' ' + (UNIT_N[d.u] || d.u) + '/сут (' + zoneName(zoneOf(+it.amt, d), it.n) + ')' : 'нет в этой форме'}`); });
   if (S.unlim) L.push('  Ограничение на максимальную дозу снято — требуется консультация фармацевта.');
   const ffs = LASTRES ? formFindings(LASTRES).filter(f => f.sev >= 2) : [];
   if (ffs.length) { L.push('Совместимость в форме:'); [...new Set(ffs.map(reasonOf))].forEach(t => L.push('  • ' + t)); }

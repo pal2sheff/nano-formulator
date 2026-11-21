@@ -50,7 +50,7 @@
 .zbar b { position: absolute; top: -4px; width: 4px; height: 14px; margin-left: -2px; border-radius: 2px; background: var(--ni-blue, var(--accent)); }
 .dmeta { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; flex-wrap: wrap; }
 .zone { font-weight: 600; color: var(--muted); }
-.zone.sub, .zone.below { color: var(--ni-muted, var(--muted)); } .zone.prof { color: #3E9A63; } .zone.ther { color: var(--syn); } .zone.over { color: var(--crit); }
+.zone.sub, .zone.below { color: var(--ni-muted, var(--muted)); } .zone.prof { color: #3E9A63; } .zone.ther { color: var(--syn); } .zone.over { color: var(--crit); } .zone.ul { color: var(--major, #c2410c); }
 .dorg { font-size: 12px; color: var(--mod); }
 @media (max-width: 960px) { .cols { grid-template-columns: minmax(0, 1fr); } .clist { max-height: 240px; } }
 

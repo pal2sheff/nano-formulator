@@ -28,6 +28,7 @@ const BF_MAP = [
 function bfForms(m) {
   const bf = (m.pharm && m.pharm.bf) || ''; const out = new Set(); let only = false;
   BF_MAP.forEach(([re, fs, o]) => { if (re.test(bf)) { fs.forEach(f => out.add(f)); if (o) only = true; } });
+  if (isHormone(m) && /гель|крем/.test(bf)) out.add('td'); // гормональные гели и кремы — трансдермальные формы
   return { set: out, only };
 }
 

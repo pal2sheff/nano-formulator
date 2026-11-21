@@ -46,8 +46,16 @@ function analyzeDoc(ids, cond = []) {
       if (list.some(f => f.key === key)) continue;
       const sev = R.cat === 'syn' ? 0 : sevFor(R.sev, 'D', A, B, { pc: 'D' });
       if (R.cat !== 'syn' && !(sev > 0)) continue;
-      list.push({ key, rule: R.id, sev, type: R.type, ids: [A.id, B.id], t: A.ru + ' + ' + B.ru, mech: fill(R.mech, A, B), act: fill(R.act, A, B), split: !!R.split });
+      list.push({ key, rule: R.id, sev, type: R.type, ids: [A.id, B.id], t: A.ru + ' + ' + B.ru, mech: fill(R.mech, A, B), act: fill(R.act, A, B), split: !!R.split, add: !!R.add });
     }
+  }
+  // одно действующее вещество под разными записями (вещество и его экстракт / липосомальная форма): дозы суммируются
+  for (let i = 0; i < ms.length; i++) for (let j = i + 1; j < ms.length; j++) {
+    const A = ms[i], B = ms[j];
+    if ((A.base || A.id) !== (B.base || B.id)) continue;
+    inter.push({ key: 'same_active:' + [A.id, B.id].sort().join('|'), rule: 'same_active', sev: 2, type: 'Одно действующее вещество', ids: [A.id, B.id], t: A.ru + ' + ' + B.ru,
+      mech: `${A.ru} и ${B.ru} содержат одно действующее вещество (${BY[A.base || A.id].ru}): эффект и риски определяются суммарной дозой.`,
+      act: 'Оставить одну позицию или пересчитать дозы так, чтобы суммарная доза действующего вещества не превышала обычную.' });
   }
   // синергия: правила базы + врачебные пары
   for (let i = 0; i < ms.length; i++) for (let j = i + 1; j < ms.length; j++) synBetween(ms[i], ms[j]).forEach(f => syn.push(f));
@@ -79,7 +87,7 @@ function analyzeDoc(ids, cond = []) {
 
   // общие предостережения
   const notes = [];
-  ms.forEach(m => GENERAL_NOTES.forEach(n => { if (n.id ? m.id === n.id : m.T.has(n.tag)) notes.push({ id: m.id, t: n.tx || n.t }); }));
+  ms.forEach(m => GENERAL_NOTES.forEach(n => { if (n.id ? m.id === n.id : m.T.has(n.tag)) notes.push({ id: m.id, t: n.tx || n.t, req: !!n.req }); }));
 
   // схема приёма
   const tim = {}; ms.forEach(m => { tim[m.id] = timing(m); });
@@ -107,7 +115,8 @@ function analyzeDoc(ids, cond = []) {
   if (pMax >= 3) verdict = { k: 'crit', t: 'Противопоказано пациенту', d: 'В составе есть вещества, противопоказанные при отмеченных состояниях. См. блок «Противопоказания».' };
   else if (iMax >= 3) verdict = { k: 'major', t: 'Есть серьёзные противоречия', d: 'Компоненты противоречат друг другу или их эффекты опасно суммируются. Рекомендуется изменить состав или разделить приём.' };
   else if (iMax >= 2 || pMax >= 2) verdict = { k: 'mod', t: 'Допустимо с оговорками', d: 'Сочетание возможно при соблюдении рекомендаций: время приёма, контроль показателей, осторожность при отмеченных состояниях.' };
-  else verdict = { k: 'ok', t: syn.length ? 'Сочетание оправдано' : 'Противоречий не найдено', d: syn.length ? 'Существенных противоречий нет, есть полезные сочетания.' : 'Существенных противоречий по базе не найдено.' };
+  else if (notes.some(n => n.req)) verdict = { k: 'mod', t: 'Допустимо с оговорками', d: 'Требуется уточнение: ' + notes.filter(n => n.req).map(n => nm(n.id) + ' — ' + n.t).join('; ') };
+  else { const conf = syn.filter(f => !f.add).length; verdict = { k: 'ok', t: conf ? 'Сочетание оправдано' : 'Противоречий не найдено', d: conf ? 'Существенных противоречий нет, есть подтверждённые полезные сочетания.' : syn.length ? 'Существенных противоречий нет; эффекты компонентов могут дополнять друг друга.' : 'Существенных противоречий по базе не найдено.' }; }
   if (!ms.length) verdict = null;
 
   return { ids, ms, cond: [...condSet], inter, syn, dirList, condRows, patient, notes, schedule, groups, verdict };
@@ -119,18 +128,18 @@ function synBetween(A, B) {
   const ck = A.id < B.id ? A.id + '|' + B.id : B.id + '|' + A.id;
   if (SYN_CACHE.has(ck)) return SYN_CACHE.get(ck);
   const out = [], seen = new Set();
-  const push = (X, Y, type, mech, rule) => { if (seen.has(type)) return; seen.add(type); out.push({ key: rule + ':' + ck, rule, sev: 0, type, ids: [X.id, Y.id], t: X.ru + ' + ' + Y.ru, mech }); };
+  const push = (X, Y, type, mech, rule, add) => { if (seen.has(type)) return; seen.add(type); out.push({ key: rule + ':' + ck, rule, sev: 0, type, ids: [X.id, Y.id], t: X.ru + ' + ' + Y.ru, mech, add: !!add }); };
   for (const [X, Y] of [[A, B], [B, A]]) {
     for (const R of PAIR_RULES) {
       if (R.cat !== 'syn' || DOC_SKIP_RULES.has(R.id)) continue;
       if (!matchSel(X, R.a) || !matchSel(Y, R.b)) continue;
       if (R.not && (R.not(X) || R.not(Y))) continue;
-      push(X, Y, R.type, fill(R.mech, X, Y), R.id);
+      push(X, Y, R.type, fill(R.mech, X, Y), R.id, R.add);
     }
     for (const [k, R] of DOC_SYN.entries()) {
       if (!selMatch(X, R.a) || !selMatch(Y, R.b) || X.id === Y.id) continue;
       if (R.not && (R.not(X) || R.not(Y))) continue;
-      push(X, Y, R.type, R.t, 'dsyn' + k);
+      push(X, Y, R.type, R.t, 'dsyn' + k, R.add);
     }
   }
   SYN_CACHE.set(ck, out);
@@ -171,15 +180,19 @@ function partners(id) {
 }
 
 /* ---------- Текст заключения ---------- */
-function docReport(r) {
+function docReport(r, fv) {
+  const v = fv || r.verdict;
   const L = [];
   L.push('ЗАКЛЮЧЕНИЕ ПО СОСТАВУ (оценка по базе взаимодействий; решение — за врачом)');
   L.push('Состав: ' + r.ms.map(m => m.ru).join('; '));
   if (r.cond.length) L.push('Пациент: ' + r.cond.map(c => COND_N[c]).join('; '));
-  L.push('ВЕРДИКТ: ' + r.verdict.t + '. ' + r.verdict.d);
+  L.push('ВЕРДИКТ: ' + v.t + (v.d ? '. ' + v.d : ''));
   if (r.dirList.length) L.push('Направленность: ' + r.dirList.map(d => `${d.n} (${d.ids.map(nm).join(', ')})`).join('; '));
   if (r.patient.length) { L.push(''); L.push('Противопоказания для пациента:'); r.patient.forEach(c => c.items.forEach(x => L.push(`  • [${CONTRA_SEV[x.sev].t}] ${COND_N[c.k]}: ${nm(x.id)} — ${x.t}`))); }
-  if (r.syn.length) { L.push(''); L.push('Синергия:'); r.syn.forEach(f => L.push(`  + ${f.t} — ${f.type}`)); }
+  if (r.notes && r.notes.length) { L.push(''); L.push('Общие предостережения:'); r.notes.forEach(n => L.push(`  • ${n.req ? '[Требуется уточнение] ' : ''}${nm(n.id)}: ${n.t}`)); }
+  const sc = r.syn.filter(f => !f.add), sa = r.syn.filter(f => f.add);
+  if (sc.length) { L.push(''); L.push('Синергия:'); sc.forEach(f => L.push(`  + ${f.t} — ${f.type}`)); }
+  if (sa.length) { L.push(''); L.push('Дополнение эффектов (предполагаемое):'); sa.forEach(f => L.push(`  + ${f.t} — ${f.type}`)); }
   const main = r.inter.filter(f => f.sev >= 2);
   if (main.length) { L.push(''); L.push('Взаимодействия:'); main.forEach(f => { L.push(`  • [${DOC_SEV[f.sev].t}] ${f.type}: ${f.t}`); L.push('    ' + f.act); }); }
   const s = r.schedule;
