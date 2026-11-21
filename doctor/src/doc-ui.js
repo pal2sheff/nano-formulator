@@ -232,7 +232,7 @@ function renderOut(r) {
   const fmain = ffs.filter(f => f.sev >= 2);
   h += `<div class="card"><div class="card-h"><h2>Совместимость в форме «${esc(FN)}»</h2></div>
     ${fmain.length || incl.length ? `<div class="flist">${incl.map(x => `<div class="citem">${x.l === 'high' ? badge('crit', 'Несовместимо') : badge('mod', 'Осторожно')}<span>${mlinks(x.ids).replace('</button>, <button', '</button> + <button')} — по таблице несовместимостей аптеки</span></div>`).join('')}
-      ${fmain.map(f => `<div class="citem">${f.sev >= 4 ? badge('crit', 'Нельзя') : f.sev === 3 ? badge('major', 'Серьёзно') : badge('mod', 'Умеренно')}<span>${esc(reasonOf(f))}${f.act ? `<span class="muted"> — ${esc(f.act)}</span>` : ''}</span></div>`).join('')}</div>`
+      ${fmain.map(f => `<div class="citem">${f.sev >= 4 ? badge('crit', 'Нельзя') : f.sev === 3 ? badge('major', 'Серьёзно') : badge('mod', 'Умеренно')}<span>${esc(reasonOf(f))}${srcTag(f)}${f.act ? `<span class="muted"> — ${esc(f.act)}</span>` : ''}</span></div>`).join('')}</div>`
       : '<div class="snote ok" style="margin-top:0">Противоречий с формой нет.</div>'}
     ${ffs.some(f => f.sev < 2) ? `<details class="more"><summary>Учесть: ${ffs.filter(f => f.sev < 2).length}</summary><div class="flist" style="margin-top:6px">${[...new Set(ffs.filter(f => f.sev < 2).map(reasonOf))].map(t => `<div class="citem">${badge('minor', 'Учесть')}<span>${esc(t)}</span></div>`).join('')}</div></details>` : ''}
   </div>`;
@@ -356,6 +356,7 @@ function renderMol(id) {
   h += `<div class="card"><div class="card-h"><h2>Взаимодействия</h2><span class="sub">${p.inter.length}</span></div>${p.inter.length ? `<div class="pills">${chips(p.inter, x => DOC_SEV[x.sev].k)}</div><div class="legend"><span><i style="background:var(--major)"></i>серьёзно</span><span><i style="background:var(--mod)"></i>умеренно</span><span><i style="background:var(--minor-bg);outline:1px solid var(--minor)"></i>учесть</span><span class="muted">наведите — тип взаимодействия</span></div>` : '<div class="muted small">Значимых взаимодействий в базе нет</div>'}</div>`;
   h += `<div class="card"><div class="card-h"><h2>Противопоказания и осторожность</h2></div>${ct.length ? '<div class="flist">' + ct.map(c => `<div class="citem">${csev(c.sev)}<span><b>${esc(COND_N[c.c])}.</b> ${esc(c.t)}</span></div>`).join('') + '</div>' : '<div class="muted small">По базе не отмечены</div>'}
     ${GENERAL_NOTES.filter(n => m.T.has(n.tag)).map(n => `<div class="notes2" style="margin-top:8px"><div>${esc(n.t)}</div></div>`).join('')}</div>`;
+  h += niCardHTML(m, { collapsed: true });
   el.innerHTML = h;
 }
 

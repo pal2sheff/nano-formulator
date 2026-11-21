@@ -54,9 +54,9 @@ test('Беременность: гормоны и DIM противопоказа
   assert.ok(it.some(x => x.id === 'dhea' && x.sev === 3));
   assert.ok(!it.some(x => x.id === 'mthf'));
 });
-test('Направленность: каждое активное вещество (кроме b14 и пиперина) отнесено к направлению', () => {
+test('Направленность: каждое активное вещество (кроме пиперина) отнесено к направлению; b14 = PQQ', () => {
   const miss = Object.values(A.BY).filter(m => m.kind !== 'excipient' && !A.DIR_OF[m.id]).map(m => m.id);
-  assert.deepEqual(miss.sort(), ['b14', 'piperine']);
+  assert.deepEqual(miss.sort(), ['piperine']);
   const r = run('nmn coq10 pqq resv');
   assert.equal(r.dirList[0].k, 'energy');
 });
@@ -151,10 +151,10 @@ test('Формы: BPC-157 — назально/сублингвально пре
   const r = F('bpc157'); assert.ok(['best', 'ok'].includes(rate(r, 'nasal')));
   assert.notEqual(rate(F('butyrate'), 'supp'), 'na');
 });
-test('Все активные вещества имеют направленность (кроме b14/пиперина) и данные метаболизма', () => {
+test('Все активные вещества имеют направленность (кроме пиперина) и данные метаболизма', () => {
   const act = Object.values(A.BY).filter(m => m.kind !== 'excipient');
-  assert.equal(act.length, 262);
-  assert.deepEqual(act.filter(m => !A.DIR_OF[m.id]).map(m => m.id).sort(), ['b14', 'piperine']);
+  assert.equal(act.length, 263);
+  assert.deepEqual(act.filter(m => !A.DIR_OF[m.id]).map(m => m.id).sort(), ['piperine']);
   assert.ok(act.every(m => A.PK[m.id]));
 });
 

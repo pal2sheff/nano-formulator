@@ -157,7 +157,7 @@ test('Бисглицинат железа: окисляет витамин C в 
 test('Новые вещества: структура и дескрипторы RDKit, синонимы находятся', () => {
   for (const id of ['nag', 'b2', 'succinic', 'butyrate', 'aucubin', 'mgthr']) assert.ok(A.BY[id].svg && A.BY[id].tpsa != null, id);
   assert.ok(Object.values(A.BY).filter(m => (m.syn || '').includes('Гриффония')).some(m => m.id === 'htp'));
-  assert.equal(Object.keys(A.BY).length, 301);
+  assert.equal(Object.keys(A.BY).length, 302);
   for (const id of ['methblue', 'eugenol', 'dmannose', 'betaala']) assert.ok(A.BY[id].svg, id);
 });
 
@@ -179,4 +179,51 @@ test('Отметки технолога: окна pH в каплях, табли
   assert.equal(A.sitePairStatus('NADH', 'Липосомальный Витамин C (аскорбиновая кислота)', 'КП').lvl, 0);
   assert.equal(A.sitePairStatus('Бромелайн', 'Семакс', 'НС').lvl, 3);
   assert.equal(A.zoneOf(A.siteDose('Астаксантин', 'СЛ').ther, A.siteDose('Астаксантин', 'СЛ')), 'ther');
+});
+
+/* ---------- Данные аптеки Nano Identica (блок ni) ---------- */
+test('Данные аптеки: блок ni в записях, трактовка B14 = PQQ и витамина E = DL-α-токоферол, новые записи', () => {
+  const withNi = Object.values(A.BY).filter(m => m.ni);
+  assert.ok(withNi.length >= 160, 'записей с ni: ' + withNi.length);
+  assert.equal(A.BY.horsechest.ni.cas.split(' ')[0], '6805-41-0');
+  assert.deepEqual([...A.BY.horsechest.ni.ph_ni], [4, 7]);
+  assert.ok(A.BY.horsechest.ph, 'прежнее поле ph сохранено');
+  assert.equal(A.BY.b14.base, 'pqq');
+  assert.ok(/B14/.test(A.BY.pqq.syn) && /PQQ/.test(A.BY.b14.ni.alias));
+  assert.ok(/DL-α/.test(A.BY.vite.ni.alias) && /DL-α/.test(A.BY.vite.syn));
+  assert.equal(A.BY.nad_lipo.base, 'nad'); assert.ok(A.BY.nad_lipo.T.has('liposome'));
+  for (const id of ['bpc157', 'tb500', 'ghkcu', 'dihexa']) { assert.ok(!A.BY[id].dose, id + ': dose не заполняется'); assert.ok(A.BY[id].ni, id + ': есть карточка аптеки'); }
+  assert.equal(A.SITE.mols['Витамин B14'].id, 'pqq');
+  assert.equal(A.SITE.mols['Липосомальный NAD+'].id, 'nad_lipo');
+});
+test('Данные аптеки: pH вне диапазона аптеки при допустимом литературном — источник «данные аптеки»', () => {
+  const r = run('drops', [['ala', 100]], { vdose: 2 });   // pH ≈ 3,8: литература 3–8 допускает, аптека — 6–7,5
+  assert.ok(r.summary.pH > 3 && r.summary.pH < 6);
+  assert.ok(!has(r, f => f.rule === 'ph_window' && f.ids[0] === 'ala'), 'литературное окно не нарушено');
+  const f = has(r, f => f.rule === 'ni_ph' && f.ids[0] === 'ala');
+  assert.ok(f && f.sev >= 2);
+  assert.deepEqual([...f.src], ['ni']);
+  assert.equal(A.srcLabel(f), 'данные аптеки');
+  assert.ok(r.findings.filter(x => x.cat !== 'syn').every(x => x.src && x.src.length), 'у каждой проблемы есть источник');
+});
+test('Данные аптеки: нагрев основы троше выше допустимой температуры — оба источника в находке и в отчёте', () => {
+  const r = run('troche', [['mthf', 1]], { base: 'peg', mass: 1 });   // ПЭГ ≈ 60 °C, аптека: не выше 40 °C
+  const f = has(r, f => f.type === 'Нагрев' && f.ids.includes('mthf'));
+  assert.ok(f && f.sev >= 3, 'нагрев 60 °C при допустимых 40 °C — серьёзно');
+  assert.deepEqual([...f.src], ['lit', 'ni']);
+  assert.match(f.mech, /40 °C/);
+  assert.match(A.reportText(r), /источник: литература и данные аптеки/);
+});
+test('Данные аптеки: растворитель и консерванты — спирт для липосом, ЭДТА для SOD, сорбат не из списка аптеки', () => {
+  const lip = run('drops', [['gsh_lipo', 100]], { vdose: 2, cosolv: 'ethanol', cpct: 20 });
+  const fe = has(lip, f => f.ids[0] === 'gsh_lipo' && /этанол/.test(f.t));
+  assert.ok(fe && fe.src.includes('ni') && fe.src.includes('lit'));
+  const sod = run('drops', [['sod', 10], ['edta', 1]], { vdose: 2 });
+  const fb = has(sod, f => f.rule === 'ni_pa_bad' && pair(f, 'sod', 'edta'));
+  assert.ok(fb && fb.sev === 3 && fb.src[0] === 'ni');
+  const b12 = run('drops', [['mecbl', 1], ['nabenz', 2], ['ksorb', 2]], { vdose: 1 });
+  assert.ok(has(b12, f => f.rule === 'ni_pa_other' && pair(f, 'mecbl', 'ksorb') && f.sev === 1), 'сорбата нет среди консервантов аптеки для B12');
+  assert.ok(!has(b12, f => f.rule === 'ni_pa_other' && pair(f, 'mecbl', 'nabenz')), 'бензоат аптека указывает как совместимый');
+  const v = run('drops', [['vite', 50]], { vdose: 1 });
+  assert.ok(has(v, f => f.ids[0] === 'vite' && f.src.includes('ni') && f.cat === 'phys'), 'аптека: витамин E нерастворим в воде');
 });
