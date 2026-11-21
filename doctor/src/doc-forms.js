@@ -76,6 +76,7 @@ function reasonOf(f) {
   if (r === 'oil_choice') return 'большинство веществ не растворяется в масле';
   if (r === 'gummy_acid') return `${A} разрушается в кислой мармеладной основе`;
   if (r === 'gummy_maillard') return `${A} темнеет с сахарным сиропом при варке`;
+  if (r === 'oral_fp') return f.short || `${A} плохо всасывается при приёме внутрь`;
   if (r === 'ni_ph') return `${A} разрушается в среде этой формы`;
   if (r === 'ni_heat') return `${A} разрушается при нагреве основы`;
   if (r === 'ni_solv') return `${A} не растворяется в основе формы`;

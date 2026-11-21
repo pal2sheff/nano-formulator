@@ -269,3 +269,22 @@ test('Аудит 8: сравнение форм — назначенная до�
   assert.ok(F.typical);
   assert.equal(A.equivDose(10, A.siteDose('Мелатонин', 'КП'), A.siteDose('Мелатонин', 'ТР')), 5, 'максимум → максимум, а не профилактическая доза');
 });
+test('Аудит: пресистемная инактивация — тестостерон в капсулах не «Предпочтительно», эстрадиол внутрь с оговоркой, ферменты-антиоксиданты внутрь без системного действия', () => {
+  const T = A.siteFormsFor(st('ТД', ['Биоидентичный тестостерон']).items, 'ТД');
+  const kp = T.rows.find(r => r.f === 'КП');
+  assert.equal(kp.rating, 'limit');
+  assert.ok(kp.reasons.some(t => /печень/.test(t)));
+  assert.ok(!T.rows.some(r => r.f === 'ТР' && r.reasons.some(t => /печень/.test(t))), 'троше (без проглатывания) не помечается');
+  const E = A.siteFormsFor(st('ТД', ['Биоидентичный эстрадиол']).items, 'ТД').rows.find(r => r.f === 'КП');
+  assert.equal(E.rating, 'ok'); assert.ok(E.reasons.some(t => /тромбоз/.test(t)));
+  for (const n of ['Супероксиддисмутаза (SOD)', 'Каталаза', 'Глутатионпероксидаза (GPx)']) {
+    const name = Object.keys(A.SITE.mols).find(k => A.SITE.mols[k].id === { 'Супероксиддисмутаза (SOD)': 'sod', 'Каталаза': 'catalase', 'Глутатионпероксидаза (GPx)': 'gpx' }[n]);
+    const res = A.analyzeSiteForm(st('КП', [name]).items, 'КП');
+    assert.ok(A.formFindings(res).some(f => f.rule === 'oral_fp' && f.sev === 2), n);
+  }
+  // формы, которые внутрь работают, не помечаются
+  for (const n of ['Биоидентичный прогестерон', 'Биоидентичный DHEA', 'Мелатонин']) {
+    const res = A.analyzeSiteForm(st('КП', [n]).items, 'КП');
+    assert.ok(!res.findings.some(f => f.rule === 'oral_fp'), n);
+  }
+});
